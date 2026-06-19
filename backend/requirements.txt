@@ -1,0 +1,22 @@
+# ============================================================
+# requirements.txt
+# ============================================================
+# These are all the Python packages our backend needs.
+# Install them with:  pip install -r requirements.txt
+#
+# Package explanations:
+#   fastapi        - The web framework (like Express for Python)
+#   uvicorn        - The server that runs FastAPI
+#   yt-dlp         - Downloads videos from 1000+ websites
+#   python-dotenv  - Reads .env files for configuration
+#   aiofiles       - Async file reading (needed for streaming)
+#   httpx          - Async HTTP client (used internally)
+# ============================================================
+
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+yt-dlp>=2026.3.17
+python-dotenv==1.0.1
+aiofiles==24.1.0
+httpx==0.28.0
+python-multipart==0.0.12
