@@ -1,11 +1,13 @@
+"use client";
+
 /**
  * components/MediaPreviewCard.jsx
  * --------------------------------
  * Shows media info and download buttons.
- * Handles the two-step download state machine.
+ *
+ * FIX: activeFormat is now a prop from the parent (page.jsx) rather than
+ * local state, so it resets properly between downloads.
  */
-
-"use client";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -50,16 +52,16 @@ function DownloadBtn({ icon: Icon, label, colorClass, onClick, disabled, loading
 export default function MediaPreviewCard({
   media,
   onDownload,
-  isDownloading   = false,
+  isDownloading    = false,
   downloadProgress = 0,
-  downloadLabel   = "",
-  downloadState   = "idle",
+  downloadLabel    = "",
+  downloadState    = "idle",
+  activeFormat     = null,   // lifted to parent so it resets between downloads
 }) {
   const [selectedQuality, setSelectedQuality] = useState("best");
   const [copied, setCopied] = useState(false);
-  const [activeFormat, setActiveFormat] = useState(null); // which button was clicked
 
-  const formats   = (media.formats || ["video", "audio"]).filter(
+  const formats = (media.formats || ["video", "audio"]).filter(
     (f) => f === "video" || f === "audio"
   );
   const qualities = media.qualities || ["best", "1080p", "720p", "360p"];
@@ -70,7 +72,6 @@ export default function MediaPreviewCard({
 
   const handleDownloadClick = (format) => {
     if (isDownloading) return;
-    setActiveFormat(format);
     const qualityLabel = selectedQuality === "best" ? "Best" : selectedQuality;
     onDownload?.(format, qualityLabel);
   };
@@ -186,6 +187,7 @@ export default function MediaPreviewCard({
         <AnimatePresence>
           {(isDownloading || isDone || isError) && (
             <ProgressBar
+              key="progress"
               progress={downloadProgress}
               label={downloadLabel}
               isError={isError}

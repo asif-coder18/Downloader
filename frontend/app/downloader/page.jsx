@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * app/downloader/page.jsx
  * ========================
@@ -8,15 +10,14 @@
  *   2. User clicks download → POST /api/download/video → get token
  *   3. Browser navigates to /api/file/{token} → file saves to Downloads
  *
- * WHY TWO STEPS?
- *   - Step 1 (POST) waits while yt-dlp downloads the file server-side
- *   - Step 2 (GET) lets the browser stream the file natively
- *   - No RAM buffering, no blob errors, works on mobile
+ * BUG FIXES (multi-download support):
+ *   - useRef for dlState guard prevents stale-closure blocking second downloads
+ *   - resetDownloadState() is a stable ref-based reset callable from anywhere
+ *   - activeFormat is lifted to page level so it resets with download state
+ *   - showSaveFilePicker is called BEFORE the async fetch (preserves user gesture)
  */
 
-"use client";
-
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import UrlInputForm from "@/app/components/UrlInputForm";
@@ -27,24 +28,12 @@ import { analyzeUrl, downloadVideo, downloadAudio } from "@/lib/api";
 import { useToast } from "@/hooks/useToast";
 import { useDownloadHistory } from "@/hooks/useDownloadHistory";
 
-// Example URLs removed
-
-// Download state machine
+// ── Download state machine ────────────────────────────────────────────────────
 const DL_STATE = {
-  IDLE:       "idle",
-  PREPARING:  "preparing",   // yt-dlp is downloading server-side
-  READY:      "ready",       // file ready, browser download starting
-  DONE:       "done",
-  ERROR:      "error",
-};
-
-// Labels shown to the user for each state
-const DL_LABELS = {
-  [DL_STATE.IDLE]:      "",
-  [DL_STATE.PREPARING]: "Preparing your file… this may take a minute",
-  [DL_STATE.READY]:     "Saving file…",
-  [DL_STATE.DONE]:      "Download completed and saved successfully!",
-  [DL_STATE.ERROR]:     "",
+  IDLE:      "idle",
+  PREPARING: "preparing",  // yt-dlp is downloading server-side
+  DONE:      "done",
+  ERROR:     "error",
 };
 
 export default function DownloaderPage() {
@@ -52,19 +41,41 @@ export default function DownloaderPage() {
   const [mediaInfo,   setMediaInfo]   = useState(null);
   const [analyzeErr,  setAnalyzeErr]  = useState("");
 
-  const [dlState,    setDlState]    = useState(DL_STATE.IDLE);
-  const [dlProgress, setDlProgress] = useState(0);
-  const [dlLabel,    setDlLabel]    = useState("");
+  const [dlState,     setDlState]     = useState(DL_STATE.IDLE);
+  const [dlProgress,  setDlProgress]  = useState(0);
+  const [dlLabel,     setDlLabel]     = useState("");
+  const [activeFormat, setActiveFormat] = useState(null);
+
+  // ── Use a ref to track downloading state to avoid stale closures ──────────
+  // Reading dlState inside handleDownload's setTimeout would capture a stale
+  // value. The ref always reflects the latest value synchronously.
+  const dlStateRef = useRef(DL_STATE.IDLE);
+  const resetTimerRef = useRef(null);
 
   const { toasts, addToast, removeToast } = useToast();
   const { addToHistory } = useDownloadHistory();
 
+  // ── Stable reset function — safe to call from any async context ───────────
+  const resetDownloadState = useCallback(() => {
+    // Cancel any pending auto-reset timer
+    if (resetTimerRef.current) {
+      clearTimeout(resetTimerRef.current);
+      resetTimerRef.current = null;
+    }
+    dlStateRef.current = DL_STATE.IDLE;
+    setDlState(DL_STATE.IDLE);
+    setDlProgress(0);
+    setDlLabel("");
+    setActiveFormat(null);
+  }, []);
+
   // ── Analyze ────────────────────────────────────────────────────────────────
   const handleAnalyze = useCallback(async (url) => {
+    // Reset download state when analyzing a new URL
+    resetDownloadState();
     setIsAnalyzing(true);
     setMediaInfo(null);
     setAnalyzeErr("");
-    setDlState(DL_STATE.IDLE);
 
     try {
       const data = await analyzeUrl(url);
@@ -77,19 +88,28 @@ export default function DownloaderPage() {
     } finally {
       setIsAnalyzing(false);
     }
-  }, [addToast]);
+  }, [addToast, resetDownloadState]);
 
   // ── Download ───────────────────────────────────────────────────────────────
   const handleDownload = useCallback(async (format, quality) => {
-    if (!mediaInfo || dlState === DL_STATE.PREPARING) return;
+    // Guard against concurrent downloads — use ref, not state, to avoid
+    // stale closure issues between renders
+    if (!mediaInfo || dlStateRef.current === DL_STATE.PREPARING) return;
 
+    // Cancel any pending auto-reset from a previous download
+    if (resetTimerRef.current) {
+      clearTimeout(resetTimerRef.current);
+      resetTimerRef.current = null;
+    }
+
+    dlStateRef.current = DL_STATE.PREPARING;
     setDlState(DL_STATE.PREPARING);
     setDlProgress(0);
     setDlLabel(`Preparing ${format} · ${quality}…`);
+    setActiveFormat(format);
 
-    // Progress ticker — shows activity while yt-dlp works server-side
-    // We can't get real progress from yt-dlp over HTTP, so we simulate it
-    // by slowly advancing to 85% then waiting for the server response.
+    // Fake progress ticker — yt-dlp doesn't stream progress over HTTP,
+    // so we animate slowly to 85% to show activity, then jump to 100 on success.
     let fakeProgress = 10;
     const ticker = setInterval(() => {
       fakeProgress = Math.min(fakeProgress + Math.random() * 3, 85);
@@ -97,55 +117,57 @@ export default function DownloaderPage() {
     }, 800);
 
     try {
-      const onProgress = (p) => {
-        // Real progress from the fetch call (10 → 80 → 90 → 100)
-        setDlProgress(p);
-      };
+      const onProgress = (p) => setDlProgress(p);
+
+      const normalizedQuality = quality.toLowerCase().replace(/^best$/i, "best");
 
       if (format === "Audio") {
         await downloadAudio(mediaInfo._url, onProgress);
       } else {
-        // Normalize quality: "Best" → "best", "720p" → "720p"
-        const q = quality.toLowerCase().replace(/^best$/i, "best");
-        await downloadVideo(mediaInfo._url, q, onProgress);
+        await downloadVideo(mediaInfo._url, normalizedQuality, onProgress);
       }
 
       clearInterval(ticker);
-      setDlProgress(100);
+
+      dlStateRef.current = DL_STATE.DONE;
       setDlState(DL_STATE.DONE);
-      setDlLabel(DL_LABELS[DL_STATE.DONE]);
+      setDlProgress(100);
+      setDlLabel("Download completed and saved successfully!");
+      setActiveFormat(null);
 
       addToHistory(mediaInfo, format, quality);
       addToast({
         type: "success",
-        message: `✅ ${format} download completed and saved successfully!`,
-        duration: 6000,
+        message: `✅ ${format} download complete!`,
+        duration: 5000,
       });
 
-      // Reset after 4 seconds
-      setTimeout(() => {
-        setDlState(DL_STATE.IDLE);
-        setDlProgress(0);
-        setDlLabel("");
+      // Auto-reset after 4 seconds so the next download can start
+      resetTimerRef.current = setTimeout(() => {
+        resetDownloadState();
       }, 4000);
 
     } catch (err) {
       clearInterval(ticker);
+
       const msg = err.message || "Download failed. Please try again.";
+
+      dlStateRef.current = DL_STATE.ERROR;
       setDlState(DL_STATE.ERROR);
-      setDlLabel(msg);
       setDlProgress(0);
+      setDlLabel(msg);
+      setActiveFormat(null);
+
       addToast({ type: "error", message: msg, duration: 8000 });
 
-      // Reset error state after 5 seconds
-      setTimeout(() => {
-        setDlState(DL_STATE.IDLE);
-        setDlLabel("");
+      // Auto-reset after 5 seconds so the user can retry immediately
+      resetTimerRef.current = setTimeout(() => {
+        resetDownloadState();
       }, 5000);
     }
-  }, [mediaInfo, dlState, addToast, addToHistory]);
+  }, [mediaInfo, addToast, addToHistory, resetDownloadState]);
 
-  const isDownloading = dlState === DL_STATE.PREPARING || dlState === DL_STATE.READY;
+  const isDownloading = dlState === DL_STATE.PREPARING;
 
   return (
     <>
@@ -179,15 +201,14 @@ export default function DownloaderPage() {
         <AnimatePresence>
           {analyzeErr && (
             <motion.div
+              key="analyze-err"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-3"
             >
               <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-red-300 text-sm font-medium">{analyzeErr}</p>
-              </div>
+              <p className="text-red-300 text-sm font-medium">{analyzeErr}</p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -196,6 +217,7 @@ export default function DownloaderPage() {
         <AnimatePresence>
           {dlState === DL_STATE.DONE && (
             <motion.div
+              key="dl-done"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
@@ -203,7 +225,7 @@ export default function DownloaderPage() {
             >
               <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
               <p className="text-emerald-300 text-sm font-medium">
-                Download completed and saved successfully!
+                Download complete! You can download another video now.
               </p>
             </motion.div>
           )}
@@ -211,19 +233,21 @@ export default function DownloaderPage() {
 
         {/* ── Skeleton ── */}
         <AnimatePresence>
-          {isAnalyzing && <SkeletonCard />}
+          {isAnalyzing && <SkeletonCard key="skeleton" />}
         </AnimatePresence>
 
         {/* ── Media card ── */}
         <AnimatePresence>
           {mediaInfo && !isAnalyzing && (
             <MediaPreviewCard
+              key="media-card"
               media={mediaInfo}
               onDownload={handleDownload}
               isDownloading={isDownloading}
               downloadProgress={dlProgress}
-              downloadLabel={dlLabel || DL_LABELS[dlState]}
+              downloadLabel={dlLabel}
               downloadState={dlState}
+              activeFormat={activeFormat}
             />
           )}
         </AnimatePresence>

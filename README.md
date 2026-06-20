@@ -1,107 +1,44 @@
-# SocialDL – Universal Social Media Downloader
+# SocialDL — Universal Social Media Downloader
 
-A full-stack social media downloader with a **Next.js frontend** and **FastAPI + yt-dlp backend**.
+Download videos, reels, shorts, and audio from YouTube, TikTok, Instagram, and Facebook.
 
-## Project Structure
+## Stack
+
+| Layer    | Technology                        |
+|----------|-----------------------------------|
+| Frontend | Next.js 15 (App Router), Tailwind |
+| Backend  | FastAPI, yt-dlp, FFmpeg           |
+| Deploy   | Vercel (frontend) + Render (backend) |
+
+## Structure
 
 ```
 /
-├── backend/          ← Python FastAPI server
-│   ├── app/
-│   │   ├── main.py           Entry point
-│   │   ├── config/           Settings
-│   │   ├── models/           Pydantic schemas
-│   │   ├── routes/           API endpoints
-│   │   ├── services/         yt-dlp + download logic
-│   │   └── utils/            Helper functions
-│   ├── downloads/            Temp downloaded files
-│   ├── requirements.txt
-│   └── .env.example
-│
-└── my-app/           ← Next.js frontend
-    ├── app/
-    │   ├── components/       UI components
-    │   ├── downloader/       Downloader page
-    │   ├── history/          History page
-    │   └── about/            About page
-    ├── hooks/                Custom React hooks
-    ├── lib/
-    │   ├── api.js            Backend API calls
-    │   └── mockData.js       Platform data
-    └── .env.local
+├── frontend/    Next.js app
+├── backend/     FastAPI + yt-dlp
+├── docs/        Architecture docs
+├── vercel.json  Vercel config (rootDirectory: frontend)
+└── package.json Root convenience scripts
 ```
 
 ## Quick Start
 
-### 1. Install FFmpeg (required for MP3 + HD video)
-
-**Windows:** `winget install ffmpeg`
-**Mac:** `brew install ffmpeg`
-**Linux:** `sudo apt install ffmpeg`
-
-### 2. Start the Backend
-
 ```bash
-cd backend
-python -m venv venv
-venv\Scripts\activate        # Windows
-# source venv/bin/activate   # Mac/Linux
-pip install -r requirements.txt
-cp .env.example .env
-uvicorn app.main:app --reload --port 8000
-```
-
-Backend runs at: http://localhost:8000
-API docs at: http://localhost:8000/docs
-
-### 3. Start the Frontend
-
-```bash
-cd my-app
+# Frontend
+cd frontend
 pnpm install
 pnpm dev
+
+# Backend (separate terminal)
+cd backend
+.\venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
 ```
 
-Frontend runs at: http://localhost:3000
-
-## How It Works
-
-```
-User pastes URL
-      ↓
-Frontend: POST /api/analyze
-      ↓
-Backend: yt-dlp fetches metadata (no download yet)
-      ↓
-Frontend shows: title, thumbnail, duration, quality options
-      ↓
-User clicks "Download Video"
-      ↓
-Frontend: POST /api/download/video { url, quality }
-      ↓
-Backend: yt-dlp downloads file → FFmpeg merges/converts
-      ↓
-Backend: FileResponse sends binary file to browser
-      ↓
-Browser: Automatically saves to Downloads folder ✅
+Or from the root (frontend only):
+```bash
+npm run dev
 ```
 
-## Deployment
+## Docs
 
-**Frontend → Vercel:**
-1. Push to GitHub
-2. Import at vercel.com
-3. Set `NEXT_PUBLIC_API_URL` to your backend URL
-
-**Backend → Render:**
-1. Push to GitHub
-2. New Web Service at render.com
-3. Build: `pip install -r requirements.txt`
-4. Start: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-5. Set environment variables
-
-## Legal Notice
-
-Only download publicly accessible content.
-Respect copyright laws and platform terms of service.
-Do not use to bypass DRM or authentication systems.
+See [docs/architecture.md](docs/architecture.md) for full architecture, flow diagrams, and environment variable reference.

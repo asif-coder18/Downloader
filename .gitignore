@@ -1,0 +1,22 @@
+# ── Frontend ──────────────────────────────────────────────────
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
+
+# ── Backend ───────────────────────────────────────────────────
+backend/venv/
+backend/__pycache__/
+backend/app/**/__pycache__/
+backend/*.pyc
+backend/downloads/
+backend/temp/
+backend/.env
+
+# ── OS / Editor ───────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/settings.json
+*.log
+
+# ── Legacy (my-app was renamed to frontend) ───────────────────
+my-app/
