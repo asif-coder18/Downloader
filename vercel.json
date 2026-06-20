@@ -1,5 +1,4 @@
 {
-  "rootDirectory": "frontend",
   "framework": "nextjs",
   "buildCommand": "pnpm build",
   "installCommand": "pnpm install"

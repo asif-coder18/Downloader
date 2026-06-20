@@ -8,7 +8,7 @@ Download videos, reels, shorts, and audio from YouTube, TikTok, Instagram, and F
 |----------|-----------------------------------|
 | Frontend | Next.js 15 (App Router), Tailwind |
 | Backend  | FastAPI, yt-dlp, FFmpeg           |
-| Deploy   | Vercel (frontend) + Render (backend) |
+| Deploy   | Vercel (frontend) + PythonAnywhere (backend) |
 
 ## Structure
 
@@ -41,4 +41,4 @@ npm run dev
 
 ## Docs
 
-See [docs/architecture.md](docs/architecture.md) for full architecture, flow diagrams, and environment variable reference.
+See [docs/deployment.md](docs/deployment.md) for the full Vercel + PythonAnywhere deployment guide.
