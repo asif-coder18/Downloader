@@ -110,7 +110,6 @@ export default function MediaPreviewCard({
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, 700px"
-            unoptimized
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-violet-900/50 to-purple-900/50">

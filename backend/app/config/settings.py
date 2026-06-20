@@ -46,6 +46,13 @@ ALLOWED_ORIGINS = os.getenv(
     "http://localhost:3000,http://127.0.0.1:3000"
 ).split(",")
 
+# Also allow all *.vercel.app subdomains (for Vercel preview deployments)
+# e.g. "https://downloader-abc123.vercel.app"
+ALLOWED_ORIGIN_REGEX = os.getenv(
+    "ALLOWED_ORIGIN_REGEX",
+    r"https://.*\.vercel\.app"
+)
+
 # ── File cleanup ───────────────────────────────────────────────────────────────
 # How many seconds to keep a downloaded file before deleting it.
 # 300 seconds = 5 minutes. Enough time for the browser to finish downloading.

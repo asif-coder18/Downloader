@@ -32,9 +32,7 @@ export function useDownloadHistory() {
 
   // Persist to localStorage whenever history changes
   useEffect(() => {
-    if (history.length > 0) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
   }, [history]);
 
   /**

@@ -39,6 +39,7 @@ from app.config.settings import (
     APP_VERSION,
     APP_DESCRIPTION,
     ALLOWED_ORIGINS,
+    ALLOWED_ORIGIN_REGEX,
     DOWNLOADS_DIR,
     TEMP_DIR,
 )
@@ -108,6 +109,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=ALLOWED_ORIGIN_REGEX,  # allows all *.vercel.app preview URLs
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
