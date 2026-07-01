@@ -47,7 +47,7 @@ ALLOWED_ORIGINS = [
 # Pattern: https://<anything>.vercel.app
 ALLOWED_ORIGIN_REGEX = os.getenv(
     "ALLOWED_ORIGIN_REGEX",
-    r"https://.*\.vercel\.app"
+    r"https://.*\.(vercel\.app|onrender\.com)"
 )
 
 # ── File cleanup ───────────────────────────────────────────────────────────────
