@@ -109,12 +109,10 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    allow_origin_regex=ALLOWED_ORIGIN_REGEX,  # allows all *.vercel.app preview URLs
+    allow_origin_regex=ALLOWED_ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
-    # These headers MUST be listed here for JavaScript to read them
-    # (browsers block cross-origin header access by default)
     expose_headers=[
         "Content-Disposition",
         "Content-Length",

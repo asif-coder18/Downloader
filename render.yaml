@@ -8,9 +8,9 @@ services:
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: ALLOWED_ORIGINS
-        value: https://socialdl-frontend.onrender.com
+        value: https://frontend-hl6h.onrender.com
       - key: ALLOWED_ORIGIN_REGEX
-        value: "https://.*\\.onrender\\.com"
+        value: https://.*\.(onrender\.com|vercel\.app)
       - key: FILE_TTL_SECONDS
         value: "300"
       - key: MAX_FILE_SIZE_MB
@@ -30,5 +30,3 @@ services:
         value: https://socialdl-backend.onrender.com
       - key: NODE_VERSION
         value: "20.11.0"
-      - key: PORT
-        value: "3000"
