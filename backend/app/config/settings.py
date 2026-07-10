@@ -57,6 +57,18 @@ FILE_TTL_SECONDS = int(os.getenv("FILE_TTL_SECONDS", "300"))
 # ── yt-dlp ────────────────────────────────────────────────────────────────────
 MAX_FILE_SIZE_BYTES = int(os.getenv("MAX_FILE_SIZE_MB", "500")) * 1024 * 1024
 
+# ── Cookies ───────────────────────────────────────────────────────────────────
+# Path to a Netscape-format cookies.txt file exported from your browser.
+# Required for Instagram (and some Facebook/TikTok private content).
+# Export using browser extension "Get cookies.txt LOCALLY" then upload to
+# the server and set this env var to the file path.
+# Leave empty to disable cookie support.
+COOKIES_FILE = os.getenv("COOKIES_FILE", "")
+
+# Fallback: individual platform cookies as base64-encoded strings
+# These are set as environment variables on Render/PythonAnywhere
+INSTAGRAM_COOKIES = os.getenv("INSTAGRAM_COOKIES", "")  # base64 encoded cookies.txt
+
 # ── App metadata ──────────────────────────────────────────────────────────────
 APP_NAME        = "SocialDL API"
 APP_VERSION     = "1.0.0"

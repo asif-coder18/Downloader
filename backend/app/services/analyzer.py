@@ -21,9 +21,13 @@ This tells yt-dlp: "Just give me the info, don't download anything yet."
 
 import yt_dlp
 import logging
+import os
+import tempfile
+import base64
 from typing import Dict, Any
 
 from app.models.schemas import MediaInfo
+from app.config.settings import COOKIES_FILE, INSTAGRAM_COOKIES
 from app.utils.helpers import (
     detect_platform,
     format_duration,
@@ -34,33 +38,61 @@ from app.utils.helpers import (
 logger = logging.getLogger(__name__)
 
 
-# ── yt-dlp options for info extraction only ───────────────────────────────────
-# These options tell yt-dlp what to do when we call extract_info()
-YDL_INFO_OPTIONS = {
-    # Don't actually download the video — just get metadata
-    "skip_download": True,
+def _get_cookies_file() -> str:
+    """
+    Returns path to cookies file if available.
+    Supports:
+      1. Direct file path via COOKIES_FILE env var
+      2. Base64-encoded cookies via INSTAGRAM_COOKIES env var (written to temp file)
+    """
+    if COOKIES_FILE and os.path.isfile(COOKIES_FILE):
+        return COOKIES_FILE
 
-    # Don't print anything to the terminal (we handle logging ourselves)
-    "quiet": True,
-    "no_warnings": True,
-    "no_color": True,   # ← prevents ANSI escape codes in error messages
+    if INSTAGRAM_COOKIES:
+        try:
+            decoded = base64.b64decode(INSTAGRAM_COOKIES).decode("utf-8")
+            tmp = tempfile.NamedTemporaryFile(
+                mode="w", suffix=".txt", delete=False, prefix="cookies_"
+            )
+            tmp.write(decoded)
+            tmp.close()
+            return tmp.name
+        except Exception as e:
+            logger.warning(f"Failed to decode INSTAGRAM_COOKIES: {e}")
 
-    # Don't write any files to disk during info extraction
-    "writeinfojson": False,
-    "writethumbnail": False,
+    return ""
 
-    # Timeout settings to prevent hanging forever
-    "socket_timeout": 30,
 
-    # Some sites need a user-agent to not block requests
-    "http_headers": {
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/120.0.0.0 Safari/537.36"
-        )
-    },
-}
+def _build_ydl_opts(extra: dict = None) -> dict:
+    """Build yt-dlp options with optional cookie support."""
+    opts = {
+        "skip_download": True,
+        "quiet": True,
+        "no_warnings": True,
+        "no_color": True,
+        "writeinfojson": False,
+        "writethumbnail": False,
+        "socket_timeout": 30,
+        "http_headers": {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/120.0.0.0 Safari/537.36"
+            ),
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        },
+    }
+
+    cookies = _get_cookies_file()
+    if cookies:
+        opts["cookiefile"] = cookies
+        logger.info("🍪 Using cookies file for authentication")
+
+    if extra:
+        opts.update(extra)
+
+    return opts
 
 
 async def analyze_url(url: str) -> MediaInfo:
@@ -91,11 +123,8 @@ async def analyze_url(url: str) -> MediaInfo:
     loop = asyncio.get_event_loop()
 
     try:
-        # run_in_executor runs a blocking function in a background thread
-        # so our async server doesn't freeze while yt-dlp works
         info = await loop.run_in_executor(None, _extract_info, url)
     except yt_dlp.utils.DownloadError as e:
-        # Strip ANSI color codes (\x1b[0;31m etc.) from yt-dlp error messages
         import re as _re
         raw = str(e)
         error_msg = _re.sub(r"\x1b\[[0-9;]*m", "", raw)
@@ -107,8 +136,16 @@ async def analyze_url(url: str) -> MediaInfo:
             raise ValueError("This video is private and cannot be downloaded.")
         if "not available" in low or "unavailable" in low:
             raise ValueError("This content is not available or has been removed.")
-        if "sign in" in low or "login" in low:
-            raise ValueError("This content requires login and cannot be downloaded.")
+        if "sign in" in low or "login" in low or "log in" in low:
+            raise ValueError(
+                "This content requires login. "
+                "For Instagram, make sure cookies are configured on the server."
+            )
+        if "empty" in low or "no media" in low:
+            raise ValueError(
+                "Could not find media in this URL. "
+                "For Instagram, the post may require login."
+            )
         raise ValueError(f"Could not fetch media info: {error_msg[:200]}")
 
     except Exception as e:
@@ -124,9 +161,8 @@ def _extract_info(url: str) -> Dict[str, Any]:
     Synchronous function that calls yt-dlp to extract video info.
     This runs in a background thread (called via run_in_executor).
     """
-    with yt_dlp.YoutubeDL(YDL_INFO_OPTIONS) as ydl:
-        # extract_info() returns a big dictionary with everything yt-dlp knows
-        # about the video. We pass download=False to skip actual downloading.
+    opts = _build_ydl_opts()
+    with yt_dlp.YoutubeDL(opts) as ydl:
         info = ydl.extract_info(url, download=False)
         return info
 

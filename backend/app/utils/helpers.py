@@ -162,15 +162,18 @@ def cleanup_old_files(directory: str, max_age_seconds: int = 600) -> None:
 def safe_filename(title: str, max_length: int = 80) -> str:
     """
     Convert a video title into a safe filename.
-
-    Removes characters that are illegal in filenames on Windows/Mac/Linux.
-
-    Example:
-        safe_filename("My Video: Part 1/2") → "My_Video_Part_12"
+    Handles Unicode titles (Bengali, Arabic, etc.) by keeping them intact
+    but removing filesystem-illegal characters.
     """
-    # Remove characters that are not letters, numbers, spaces, hyphens, underscores
-    safe = re.sub(r'[^\w\s\-]', '', title)
-    # Replace spaces with underscores
-    safe = re.sub(r'\s+', '_', safe.strip())
+    if not title:
+        return "download"
+
+    # Remove characters illegal in filenames on Windows/Mac/Linux
+    # Keep Unicode letters/numbers (Bengali, Arabic, etc. are fine on disk)
+    safe = re.sub(r'[<>:"/\\|?*\x00-\x1f]', '', title)
+    # Replace multiple spaces/underscores with single underscore
+    safe = re.sub(r'[\s]+', '_', safe.strip())
+    # Remove leading/trailing underscores and dots
+    safe = safe.strip('_.')
     # Truncate to max_length
     return safe[:max_length] or "download"

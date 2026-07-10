@@ -216,17 +216,24 @@ async def serve_file_endpoint(token: str):
 
     logger.info(f"📤 Serving file: {filename} to browser")
 
-    # FileResponse streams the file to the browser.
-    # Content-Disposition: attachment tells the browser to SAVE the file,
-    # not display it in a new tab.
+    # Encode filename safely for Content-Disposition header.
+    # HTTP headers are Latin-1 only — Unicode filenames (Bengali, Arabic, etc.)
+    # must use RFC 5987 encoding: filename*=UTF-8''<percent-encoded>
+    from urllib.parse import quote
+    ascii_filename  = filename.encode("ascii", "ignore").decode("ascii") or "download"
+    encoded_filename = quote(filename, safe="")
+    content_disposition = (
+        f"attachment; "
+        f'filename="{ascii_filename}"; '
+        f"filename*=UTF-8''{encoded_filename}"
+    )
+
     return FileResponse(
         path=file_path,
-        filename=filename,
+        filename=ascii_filename,  # FastAPI also uses this internally
         media_type=mime_type,
         headers={
-            # "attachment" = save as file (not open in browser)
-            "Content-Disposition": f'attachment; filename="{filename}"',
-            # These headers allow the browser to show download progress
+            "Content-Disposition": content_disposition,
             "Accept-Ranges": "bytes",
             # Cache control: don't cache download links
             "Cache-Control": "no-cache, no-store, must-revalidate",

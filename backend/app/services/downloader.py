@@ -18,12 +18,14 @@ import uuid
 import shutil
 import asyncio
 import logging
+import base64
+import tempfile
 from pathlib import Path
 from typing import Tuple, Optional
 
 import yt_dlp
 
-from app.config.settings import DOWNLOADS_DIR
+from app.config.settings import DOWNLOADS_DIR, COOKIES_FILE, INSTAGRAM_COOKIES
 from app.models.schemas import VideoQuality, DownloadFormat
 from app.utils.helpers import safe_filename, safe_delete_file, is_valid_url
 
@@ -74,6 +76,26 @@ else:
         "⚠️  FFmpeg not found. Video merging and MP3 conversion will be limited. "
         "Install FFmpeg: https://ffmpeg.org/download.html"
     )
+
+
+def _get_cookies_file() -> str:
+    """Returns path to cookies file if available."""
+    if COOKIES_FILE and os.path.isfile(COOKIES_FILE):
+        return COOKIES_FILE
+
+    if INSTAGRAM_COOKIES:
+        try:
+            decoded = base64.b64decode(INSTAGRAM_COOKIES).decode("utf-8")
+            tmp = tempfile.NamedTemporaryFile(
+                mode="w", suffix=".txt", delete=False, prefix="cookies_"
+            )
+            tmp.write(decoded)
+            tmp.close()
+            return tmp.name
+        except Exception as e:
+            logger.warning(f"Failed to decode INSTAGRAM_COOKIES: {e}")
+
+    return ""
 
 
 # ── ANSI color code stripper ───────────────────────────────────────────────────
@@ -152,8 +174,16 @@ async def download_media(
             raise ValueError("This content is private and cannot be downloaded.")
         if "not available" in low or "unavailable" in low:
             raise ValueError("This content is not available or has been removed.")
-        if "sign in" in low or "login" in low:
-            raise ValueError("This content requires login and cannot be downloaded.")
+        if "sign in" in low or "login" in low or "log in" in low:
+            raise ValueError(
+                "This content requires login. "
+                "For Instagram, cookies must be configured on the server."
+            )
+        if "empty" in low or "no media" in low:
+            raise ValueError(
+                "Could not find downloadable media. "
+                "For Instagram, the post may require login."
+            )
         if "ffmpeg" in low:
             raise ValueError(
                 "FFmpeg is required for this download. "
@@ -220,7 +250,7 @@ def _common_opts(download_id: str) -> dict:
         "outtmpl":        str(DOWNLOADS_DIR / f"{download_id}.%(ext)s"),
         "quiet":          True,
         "no_warnings":    True,
-        "no_color":       True,   # ← disables ANSI color codes in yt-dlp output
+        "no_color":       True,
         "writesubtitles": False,
         "writethumbnail": False,
         "writeinfojson":  False,
@@ -230,9 +260,17 @@ def _common_opts(download_id: str) -> dict:
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                 "AppleWebKit/537.36 (KHTML, like Gecko) "
                 "Chrome/120.0.0.0 Safari/537.36"
-            )
+            ),
+            "Accept-Language": "en-US,en;q=0.9",
         },
     }
+
+    # Add cookies if available (needed for Instagram, some Facebook content)
+    cookies = _get_cookies_file()
+    if cookies:
+        opts["cookiefile"] = cookies
+        logger.info("🍪 Using cookies for download")
+
     # Tell yt-dlp exactly where FFmpeg lives so it doesn't rely on PATH
     if FFMPEG_PATH:
         ffmpeg_dir = str(Path(FFMPEG_PATH).parent)
