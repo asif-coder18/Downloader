@@ -12,7 +12,6 @@ import { Download, GitBranch } from "lucide-react";
 const FOOTER_LINKS = {
   Product: [
     { label: "Downloader", href: "/downloader" },
-    { label: "History",    href: "/history" },
     { label: "About",      href: "/about" },
   ],
   Platforms: [
