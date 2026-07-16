@@ -28,7 +28,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
  */
 export async function analyzeUrl(url) {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30_000);
+  const timeout = setTimeout(() => controller.abort(), 90_000); // 90s — handles Render cold start
 
   try {
     const res = await fetch(`${API_BASE}/api/analyze`, {
@@ -224,7 +224,7 @@ async function _blobDownload(response) {
 export async function checkBackendHealth() {
   try {
     const res = await fetch(`${API_BASE}/health`, {
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(60_000), // 60s — wait for cold start
     });
     if (!res.ok) return false;
     const data = await res.json();

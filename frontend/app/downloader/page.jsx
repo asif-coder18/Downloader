@@ -17,14 +17,14 @@
  *   - showSaveFilePicker is called BEFORE the async fetch (preserves user gesture)
  */
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import UrlInputForm from "@/app/components/UrlInputForm";
 import MediaPreviewCard from "@/app/components/MediaPreviewCard";
 import SkeletonCard from "@/app/components/SkeletonCard";
 import ToastContainer from "@/app/components/ToastContainer";
-import { analyzeUrl, downloadVideo, downloadAudio } from "@/lib/api";
+import { analyzeUrl, downloadVideo, downloadAudio, checkBackendHealth } from "@/lib/api";
 import { useToast } from "@/hooks/useToast";
 import { useDownloadHistory } from "@/hooks/useDownloadHistory";
 
@@ -54,6 +54,14 @@ export default function DownloaderPage() {
 
   const { toasts, addToast, removeToast } = useToast();
   const { addToHistory } = useDownloadHistory();
+
+  // ── Wake up backend on page load ──────────────────────────────────────────
+  // Render free tier sleeps after 15 min inactivity.
+  // First request after sleep takes 30-60s and times out.
+  // We ping /health silently on mount so backend is awake before user clicks.
+  useEffect(() => {
+    checkBackendHealth().catch(() => {});
+  }, []);
 
   // ── Stable reset function — safe to call from any async context ───────────
   const resetDownloadState = useCallback(() => {
