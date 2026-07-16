@@ -27,10 +27,40 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SocialDL – Universal Social Media Downloader",
+  title: "SocialDL – Free YouTube TikTok Instagram Facebook Video Downloader",
   description:
-    "Download videos, reels, shorts, and audio from YouTube, TikTok, Instagram, and Facebook — free, fast, and unlimited.",
-  keywords: ["social media downloader", "youtube downloader", "tiktok downloader", "instagram reels downloader"],
+    "Download videos from YouTube, TikTok, Instagram, and Facebook for FREE. No signup, no limits, no watermark. The only free downloader that supports all 4 platforms at once.",
+  keywords: [
+    "free video downloader",
+    "youtube downloader free",
+    "tiktok downloader no watermark",
+    "instagram reels downloader",
+    "facebook video downloader",
+    "social media downloader",
+    "download youtube video free",
+    "tiktok video download",
+    "instagram video download free",
+    "all in one video downloader",
+    "ভিডিও ডাউনলোড",
+    "youtube video download",
+  ],
+  openGraph: {
+    title: "SocialDL – Free Downloader for YouTube, TikTok, Instagram & Facebook",
+    description: "The only 100% free tool to download from all 4 platforms — no signup, no watermark, no limits.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SocialDL – Free Video Downloader",
+    description: "Download from YouTube, TikTok, Instagram & Facebook — free, fast, no limits.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  verification: {
+    google: "_VGYOZn_emQlHb0i76NMx88tngSg9bwg-WETQYfpzKE",
+  },
 };
 
 export default function RootLayout({
