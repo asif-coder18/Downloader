@@ -100,11 +100,11 @@ export default function AboutPage() {
         <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white mb-4">
           About{" "}
           <span className="bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-transparent">
-            SocialDL
+            Downloader
           </span>
         </h1>
         <p className="text-slate-600 dark:text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
-          SocialDL is a free, open-source universal social media downloader. Our mission is to make it effortless for anyone to save content they love — videos, reels, shorts, and audio — from any platform.
+          Downloader is a free, open-source universal social media downloader. Our mission is to make it effortless for anyone to save content they love — videos, reels, shorts, and audio — from any platform.
         </p>
       </motion.div>
 
@@ -127,7 +127,7 @@ export default function AboutPage() {
       >
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Our Mission</h2>
         <p className="text-slate-700 dark:text-slate-300 leading-relaxed mb-4">
-          We believe content you discover should be yours to keep. Whether it&apos;s a tutorial you want to watch offline, a reel that made you laugh, or a song you want to listen to on the go — SocialDL makes it simple.
+          We believe content you discover should be yours to keep. Whether it&apos;s a tutorial you want to watch offline, a reel that made you laugh, or a song you want to listen to on the go — Downloader makes it simple.
         </p>
         <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
           We support 8+ platforms and are constantly adding more. Our tool is completely free, requires no account, and has no download limits.

@@ -35,7 +35,7 @@ export default function Footer() {
                 <Download className="w-4 h-4 text-white" />
               </div>
               <span className="font-bold text-lg text-slate-900 dark:text-white">
-                Social<span className="text-violet-600 dark:text-violet-400">DL</span>
+                Downloader
               </span>
             </Link>
             <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed max-w-xs">

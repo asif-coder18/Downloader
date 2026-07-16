@@ -27,7 +27,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SocialDL – Free YouTube TikTok Instagram Facebook Video Downloader",
+  title: "Downloader – Free YouTube TikTok Instagram Facebook Video Downloader",
   description:
     "Download videos from YouTube, TikTok, Instagram, and Facebook for FREE. No signup, no limits, no watermark. The only free downloader that supports all 4 platforms at once.",
   keywords: [
@@ -45,13 +45,13 @@ export const metadata: Metadata = {
     "youtube video download",
   ],
   openGraph: {
-    title: "SocialDL – Free Downloader for YouTube, TikTok, Instagram & Facebook",
+    title: "Downloader – Free Downloader for YouTube, TikTok, Instagram & Facebook",
     description: "The only 100% free tool to download from all 4 platforms — no signup, no watermark, no limits.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "SocialDL – Free Video Downloader",
+    title: "Downloader – Free Video Downloader",
     description: "Download from YouTube, TikTok, Instagram & Facebook — free, fast, no limits.",
   },
   robots: {

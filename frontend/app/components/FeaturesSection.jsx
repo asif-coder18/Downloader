@@ -62,7 +62,7 @@ export default function FeaturesSection() {
   return (
     <section className="py-16">
       <div className="text-center mb-12">
-        <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-3">Why Choose SocialDL?</h2>
+        <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-3">Why Choose Downloader?</h2>
         <p className="text-slate-600 dark:text-slate-400 max-w-xl mx-auto">
           Built for speed, simplicity, and reliability. Everything you need, nothing you don't.
         </p>
