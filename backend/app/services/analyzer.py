@@ -74,15 +74,21 @@ def _build_ydl_opts(extra: dict = None) -> dict:
         "writethumbnail": False,
         "socket_timeout": 30,
         # Use Android client to bypass YouTube bot detection
+        # Use tv client for TikTok
         "extractor_args": {
             "youtube": {
                 "player_client": ["android", "web"],
                 "skip": ["dash", "hls"],
-            }
+            },
+            "tiktok": {
+                "app_name": ["trill"],
+            },
         },
         "http_headers": {
             "User-Agent": (
-                "com.google.android.youtube/19.09.37 (Linux; U; Android 11) gzip"
+                "Mozilla/5.0 (Linux; Android 11; Pixel 5) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/120.0.0.0 Mobile Safari/537.36"
             ),
             "Accept-Language": "en-US,en;q=0.9",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
