@@ -1,4 +1,4 @@
-/**
+/**#######
  * app/about/page.jsx  →  About Page  (/about)
  * ---------------------------------------------
  * Informational page with:
