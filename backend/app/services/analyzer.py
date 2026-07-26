@@ -73,25 +73,23 @@ def _build_ydl_opts(extra: dict = None) -> dict:
         "writeinfojson": False,
         "writethumbnail": False,
         "socket_timeout": 30,
-        # Use Android client to bypass YouTube bot detection
-        # Use tv client for TikTok
+        # YouTube: use Android client to bypass bot detection
+        # TikTok: NO custom extractor_args — let yt-dlp use its default impersonation
         "extractor_args": {
             "youtube": {
                 "player_client": ["android", "web"],
                 "skip": ["dash", "hls"],
             },
-            "tiktok": {
-                "app_name": ["trill"],
-            },
         },
         "http_headers": {
             "User-Agent": (
-                "Mozilla/5.0 (Linux; Android 11; Pixel 5) "
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                 "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/120.0.0.0 Mobile Safari/537.36"
+                "Chrome/149.0.0.0 Safari/537.36"
             ),
-            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Language": "en-us,en;q=0.5",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Sec-Fetch-Mode": "navigate",
         },
     }
 
