@@ -255,11 +255,10 @@ def _common_opts(download_id: str) -> dict:
         "writethumbnail": False,
         "writeinfojson":  False,
         "socket_timeout": 60,
-        # YouTube: use Android client to bypass bot detection
-        # TikTok: NO custom extractor_args — let yt-dlp use its default impersonation
+        # YouTube: use TV client — bypasses bot detection without cookies
         "extractor_args": {
             "youtube": {
-                "player_client": ["android", "web"],
+                "player_client": ["tv_embedded", "android", "web"],
                 "skip": ["dash", "hls"],
             },
         },
