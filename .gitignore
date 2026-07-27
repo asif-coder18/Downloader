@@ -2,6 +2,7 @@
 frontend/node_modules/
 frontend/.next/
 frontend/.env.local
+frontend/.env.production
 
 # ── Backend ───────────────────────────────────────────────────
 backend/venv/
@@ -11,12 +12,14 @@ backend/*.pyc
 backend/downloads/
 backend/temp/
 backend/.env
+backend/.env.production
 
 # ── OS / Editor ───────────────────────────────────────────────
 .DS_Store
 Thumbs.db
 .vscode/settings.json
 *.log
+.env
 
 # ── Legacy (my-app was renamed to frontend) ───────────────────
 my-app/

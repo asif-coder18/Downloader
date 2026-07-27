@@ -29,6 +29,7 @@ We configure CORS to explicitly allow our frontend to make requests.
 
 import logging
 import sys
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -91,15 +92,15 @@ async def lifespan(app: FastAPI):
 
 
 # ── Create FastAPI App ─────────────────────────────────────────────────────────
+is_dev = os.getenv("ENVIRONMENT", "production") == "development"
+
 app = FastAPI(
     title=APP_NAME,
     version=APP_VERSION,
     description=APP_DESCRIPTION,
     lifespan=lifespan,
-    # Swagger UI is available at http://localhost:8000/docs
-    # ReDoc is available at http://localhost:8000/redoc
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url="/docs" if is_dev else None,
+    redoc_url="/redoc" if is_dev else None,
 )
 
 
@@ -109,10 +110,10 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    allow_origin_regex=ALLOWED_ORIGIN_REGEX,
+    **({"allow_origin_regex": ALLOWED_ORIGIN_REGEX} if ALLOWED_ORIGIN_REGEX else {}),
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["*"],
+    allow_headers=["Content-Type", "Authorization"],
     expose_headers=[
         "Content-Disposition",
         "Content-Length",
@@ -145,13 +146,11 @@ async def root():
     }
 
 
-@app.get("/health", tags=["Health"])
+@app.get("/health", tags=["Health"], include_in_schema=False)
 async def health_check():
-    """Detailed health check."""
+    """Minimal health check — no internal paths exposed."""
     from app.services.downloader import FFMPEG_PATH
-
     return {
         "status": "healthy",
-        "ffmpeg": f"installed at {FFMPEG_PATH}" if FFMPEG_PATH else "not found (audio conversion may not work)",
-        "downloads_dir": str(DOWNLOADS_DIR),
+        "ffmpeg": bool(FFMPEG_PATH),
     }

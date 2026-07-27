@@ -47,20 +47,25 @@ def detect_platform(url: str) -> str:
 
 def is_valid_url(url: str) -> bool:
     """
-    Basic URL validation — checks if it starts with http:// or https://
-    and has a domain name.
-
-    We don't use a complex regex here because yt-dlp will give a better
-    error message if the URL is invalid.
+    URL validation — checks format and restricts to known social media domains.
+    Prevents SSRF attacks by blocking internal/private addresses.
     """
     url = url.strip()
     if not url.startswith(("http://", "https://")):
         return False
-    # Must have at least one dot in the domain
     try:
         from urllib.parse import urlparse
         parsed = urlparse(url)
-        return bool(parsed.netloc and "." in parsed.netloc)
+        if not parsed.netloc or "." not in parsed.netloc:
+            return False
+        # Allowlist of supported domains — blocks SSRF to internal addresses
+        ALLOWED_DOMAINS = re.compile(
+            r"(youtube\.com|youtu\.be|instagram\.com|tiktok\.com|"
+            r"twitter\.com|x\.com|facebook\.com|fb\.watch|"
+            r"vimeo\.com|reddit\.com|pinterest\.com)",
+            re.I
+        )
+        return bool(ALLOWED_DOMAINS.search(parsed.netloc))
     except Exception:
         return False
 
@@ -171,6 +176,7 @@ def safe_filename(title: str, max_length: int = 80) -> str:
     # Remove characters illegal in filenames on Windows/Mac/Linux
     # Keep Unicode letters/numbers (Bengali, Arabic, etc. are fine on disk)
     safe = re.sub(r'[<>:"/\\|?*\x00-\x1f]', '', title)
+    safe = safe.replace("..", "")  # prevent path traversal
     # Replace multiple spaces/underscores with single underscore
     safe = re.sub(r'[\s]+', '_', safe.strip())
     # Remove leading/trailing underscores and dots
