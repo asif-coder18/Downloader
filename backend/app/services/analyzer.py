@@ -73,23 +73,16 @@ def _build_ydl_opts(extra: dict = None) -> dict:
         "writeinfojson": False,
         "writethumbnail": False,
         "socket_timeout": 30,
-        # YouTube: use TV client — bypasses bot detection without cookies
-        # TV client is less likely to be flagged on datacenter IPs
         "extractor_args": {
             "youtube": {
-                "player_client": ["tv_embedded", "android", "web"],
-                "skip": ["dash", "hls"],
+                "player_client": ["ios", "android"],
             },
         },
         "http_headers": {
             "User-Agent": (
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/149.0.0.0 Safari/537.36"
+                "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X)"
             ),
             "Accept-Language": "en-us,en;q=0.5",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Sec-Fetch-Mode": "navigate",
         },
     }
 
