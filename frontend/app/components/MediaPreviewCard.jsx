@@ -1,53 +1,39 @@
 "use client";
 
-/**
- * components/MediaPreviewCard.jsx
- * --------------------------------
- * Shows media info and download buttons.
- *
- * FIX: activeFormat is now a prop from the parent (page.jsx) rather than
- * local state, so it resets properly between downloads.
- */
-
 import { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Download, Music,
-  Copy, Share2, Clock, Eye, CheckCircle, Loader2,
-} from "lucide-react";
+import { Download, Music, Copy, Share2, Clock, Eye, CheckCircle, Loader2 } from "lucide-react";
 import { QUALITY_OPTIONS } from "@/lib/mockData";
 import { getPlatformGradient, copyToClipboard } from "@/lib/utils";
 import ProgressBar from "./ProgressBar";
 
-// ─── Download Button ──────────────────────────────────────────────────────────
-
 function DownloadBtn({ icon: Icon, label, colorClass, onClick, disabled, loading }) {
   return (
     <motion.button
-      whileHover={{ scale: disabled ? 1 : 1.03 }}
+      whileHover={{ scale: disabled ? 1 : 1.03, y: disabled ? 0 : -1 }}
       whileTap={{ scale: disabled ? 1 : 0.97 }}
       onClick={onClick}
       disabled={disabled}
       className={`
         relative flex items-center justify-center gap-2
-        py-2.5 px-3 rounded-xl text-sm font-semibold text-white
-        transition-all shadow-lg
-        disabled:opacity-60 disabled:cursor-not-allowed
+        py-3 px-4 rounded-xl text-sm font-semibold text-white
+        transition-all duration-200 shadow-lg overflow-hidden
+        disabled:opacity-50 disabled:cursor-not-allowed
         ${colorClass}
       `}
     >
+      {/* Shine on hover */}
+      <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-500" />
       {loading ? (
-        <Loader2 className="w-4 h-4 animate-spin" />
+        <Loader2 className="w-4 h-4 animate-spin relative" />
       ) : (
-        <Icon className="w-4 h-4" />
+        <Icon className="w-4 h-4 relative" />
       )}
-      {label}
+      <span className="relative">{label}</span>
     </motion.button>
   );
 }
-
-// ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function MediaPreviewCard({
   media,
@@ -56,7 +42,7 @@ export default function MediaPreviewCard({
   downloadProgress = 0,
   downloadLabel    = "",
   downloadState    = "idle",
-  activeFormat     = null,   // lifted to parent so it resets between downloads
+  activeFormat     = null,
 }) {
   const [selectedQuality, setSelectedQuality] = useState("best");
   const [copied, setCopied] = useState(false);
@@ -64,11 +50,8 @@ export default function MediaPreviewCard({
   const formats = (media.formats || ["video", "audio"]).filter(
     (f) => f === "video" || f === "audio"
   );
-  const qualities = media.qualities || ["best", "1080p", "720p", "360p"];
-
-  const availableQualities = QUALITY_OPTIONS.filter((q) =>
-    qualities.includes(q.value)
-  );
+  const qualities = (media.qualities || ["best", "1080p", "720p"]).filter(q => q !== "360p");
+  const availableQualities = QUALITY_OPTIONS.filter((q) => qualities.includes(q.value));
 
   const handleDownloadClick = (format) => {
     if (isDownloading) return;
@@ -84,10 +67,8 @@ export default function MediaPreviewCard({
 
   const handleShare = async () => {
     if (typeof navigator !== "undefined" && navigator.share && media._url) {
-      try {
-        await navigator.share({ title: media.title, url: media._url });
-        return;
-      } catch { /* user cancelled */ }
+      try { await navigator.share({ title: media.title, url: media._url }); return; }
+      catch { /* cancelled */ }
     }
     handleCopy();
   };
@@ -97,13 +78,16 @@ export default function MediaPreviewCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="w-full rounded-2xl bg-slate-100/50 dark:bg-white/5 backdrop-blur-sm border border-slate-200 dark:border-white/10 overflow-hidden shadow-sm dark:shadow-none"
+      initial={{ opacity: 0, y: 28, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.45, ease: "easeOut" }}
+      className="w-full rounded-2xl overflow-hidden
+        bg-white/70 dark:bg-white/[0.05] backdrop-blur-md
+        border border-slate-200/80 dark:border-white/[0.09]
+        shadow-xl shadow-slate-200/50 dark:shadow-black/30"
     >
-      {/* ── Thumbnail ── */}
-      <div className="relative w-full aspect-video bg-slate-800">
+      {/* Thumbnail */}
+      <div className="relative w-full aspect-video bg-slate-900">
         {media.thumbnail ? (
           <Image
             src={media.thumbnail}
@@ -113,27 +97,33 @@ export default function MediaPreviewCard({
             sizes="(max-width: 768px) 100vw, 700px"
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-violet-900/50 to-purple-900/50">
-            <Download className="w-16 h-16 text-violet-400/40" />
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-violet-900/60 to-fuchsia-900/40">
+            <Download className="w-16 h-16 text-violet-400/30" />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
         {/* Platform badge */}
-        <span className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getPlatformGradient(media.platform)}`}>
+        <motion.span
+          initial={{ opacity: 0, x: -8 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+          className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getPlatformGradient(media.platform)} shadow-md`}
+        >
           {media.platform}
-        </span>
+        </motion.span>
 
         {/* Duration */}
         {media.duration && (
-          <span className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-1 rounded-md bg-black/70 text-white text-xs font-mono">
+          <span className="absolute bottom-3 right-3 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-sm text-white text-xs font-mono">
             <Clock className="w-3 h-3" />
             {media.duration}
           </span>
         )}
       </div>
 
-      {/* ── Info ── */}
+      {/* Content */}
       <div className="p-5 space-y-4">
 
         {/* Title */}
@@ -142,7 +132,7 @@ export default function MediaPreviewCard({
         </h2>
 
         {/* Meta */}
-        <div className="flex flex-wrap items-center gap-3 text-slate-500 dark:text-slate-400 text-xs">
+        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
           {media.uploader && (
             <span className="font-medium text-slate-700 dark:text-slate-300">{media.uploader}</span>
           )}
@@ -158,32 +148,33 @@ export default function MediaPreviewCard({
           )}
         </div>
 
-        {/* ── Quality Selector ── */}
+        {/* Quality selector */}
         <div>
-          <p className="text-slate-500 dark:text-slate-400 text-xs font-medium mb-2">Quality</p>
+          <p className="text-slate-400 dark:text-slate-500 text-xs font-medium mb-2.5 uppercase tracking-wide">Quality</p>
           <div className="flex flex-wrap gap-2">
             {availableQualities.map((q) => (
-              <button
+              <motion.button
                 key={q.value}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setSelectedQuality(q.value)}
                 disabled={isDownloading}
                 className={`
-                  px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all
-                  disabled:opacity-50 disabled:cursor-not-allowed
+                  px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all duration-200
+                  disabled:opacity-40 disabled:cursor-not-allowed
                   ${selectedQuality === q.value
-                    ? "bg-violet-600 border-violet-500 text-white shadow-lg shadow-violet-500/30"
-                    : "bg-slate-200/50 dark:bg-white/5 border-slate-300/60 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 dark:hover:border-white/20"
+                    ? "bg-violet-600 border-violet-500 text-white shadow-md shadow-violet-500/30"
+                    : "bg-white/60 dark:bg-white/5 border-slate-200/80 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:border-violet-400/50 dark:hover:border-violet-500/40 hover:text-violet-600 dark:hover:text-violet-300"
                   }
                 `}
               >
                 {q.badge && <span className="mr-1">{q.badge}</span>}
                 {q.label}
-              </button>
+              </motion.button>
             ))}
           </div>
         </div>
 
-        {/* ── Progress Bar ── */}
+        {/* Progress bar */}
         <AnimatePresence>
           {(isDownloading || isDone || isError) && (
             <ProgressBar
@@ -196,13 +187,13 @@ export default function MediaPreviewCard({
           )}
         </AnimatePresence>
 
-        {/* ── Download Buttons ── */}
-        <div className="grid grid-cols-2 gap-2.5">
+        {/* Download buttons */}
+        <div className="grid grid-cols-2 gap-3">
           {formats.includes("video") && (
             <DownloadBtn
               icon={Download}
               label="Video"
-              colorClass="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-violet-500/25"
+              colorClass="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 shadow-violet-500/25"
               onClick={() => handleDownloadClick("Video")}
               disabled={isDownloading}
               loading={isDownloading && activeFormat === "Video"}
@@ -212,7 +203,7 @@ export default function MediaPreviewCard({
             <DownloadBtn
               icon={Music}
               label="Audio"
-              colorClass="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 shadow-blue-500/25"
+              colorClass="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 shadow-blue-500/25"
               onClick={() => handleDownloadClick("Audio")}
               disabled={isDownloading}
               loading={isDownloading && activeFormat === "Audio"}
@@ -220,20 +211,28 @@ export default function MediaPreviewCard({
           )}
         </div>
 
-        {/* ── Copy / Share ── */}
+        {/* Copy / Share */}
         <div className="flex gap-2 pt-1">
           <button
             onClick={handleCopy}
-            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl bg-slate-200/50 dark:bg-white/5 hover:bg-slate-300/50 dark:hover:bg-white/10 border border-slate-300/60 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-medium transition-all"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl
+              bg-slate-100/80 dark:bg-white/[0.05] hover:bg-slate-200/80 dark:hover:bg-white/10
+              border border-slate-200/80 dark:border-white/[0.08]
+              text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white
+              text-xs font-medium transition-all duration-200"
           >
             {copied
-              ? <><CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> Copied!</>
+              ? <><CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> Copied!</>
               : <><Copy className="w-3.5 h-3.5" /> Copy Link</>
             }
           </button>
           <button
             onClick={handleShare}
-            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl bg-slate-200/50 dark:bg-white/5 hover:bg-slate-300/50 dark:hover:bg-white/10 border border-slate-300/60 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-medium transition-all"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl
+              bg-slate-100/80 dark:bg-white/[0.05] hover:bg-slate-200/80 dark:hover:bg-white/10
+              border border-slate-200/80 dark:border-white/[0.08]
+              text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white
+              text-xs font-medium transition-all duration-200"
           >
             <Share2 className="w-3.5 h-3.5" /> Share
           </button>

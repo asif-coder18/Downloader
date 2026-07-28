@@ -19,7 +19,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertTriangle, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Zap } from "lucide-react";
 import UrlInputForm from "@/app/components/UrlInputForm";
 import MediaPreviewCard from "@/app/components/MediaPreviewCard";
 import SkeletonCard from "@/app/components/SkeletonCard";
@@ -187,7 +187,11 @@ export default function DownloaderPage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-10"
         >
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white mb-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-400/20 text-violet-600 dark:text-violet-300 text-xs font-semibold mb-5">
+            <Zap className="w-3 h-3" />
+            Free · Fast · No Limits
+          </div>
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white mb-3 tracking-tight">
             Download
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-lg">
