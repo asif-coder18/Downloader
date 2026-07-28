@@ -80,9 +80,13 @@ def _build_ydl_opts(extra: dict = None) -> dict:
         },
         "http_headers": {
             "User-Agent": (
-                "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X)"
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/149.0.0.0 Safari/537.36"
             ),
             "Accept-Language": "en-us,en;q=0.5",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Sec-Fetch-Mode": "navigate",
         },
     }
 
