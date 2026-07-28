@@ -34,7 +34,6 @@ export const QUALITY_OPTIONS = [
   { label: "Best",  value: "best",  badge: "⭐" },
   { label: "1080p", value: "1080p", badge: "HD" },
   { label: "720p",  value: "720p",  badge: "" },
-  { label: "360p",  value: "360p",  badge: "" },
 ];
 
 // ─── Mock Media Results ───────────────────────────────────────────────────────

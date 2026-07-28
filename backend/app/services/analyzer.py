@@ -279,11 +279,9 @@ def _detect_available_qualities(info: Dict[str, Any]) -> list:
         qualities.append("1080p")
     if any(h >= 720 for h in heights):
         qualities.append("720p")
-    if any(h >= 360 for h in heights):
-        qualities.append("360p")
 
     # If no height info, offer all options (yt-dlp will pick what's available)
     if len(qualities) == 1:
-        qualities = ["best", "1080p", "720p", "360p"]
+        qualities = ["best", "1080p", "720p"]
 
     return qualities
