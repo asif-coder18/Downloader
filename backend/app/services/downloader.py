@@ -78,6 +78,18 @@ else:
     )
 
 
+def _build_youtube_extractor_args() -> dict:
+    """Build YouTube extractor args — mweb client works better on datacenter IPs."""
+    yt_args = {
+        "player_client": ["mweb", "ios", "android"],
+    }
+    po_token = os.getenv("YOUTUBE_PO_TOKEN", "")
+    if po_token:
+        yt_args["po_token"] = [f"web+{po_token}"]
+        logger.info("🔑 Using YouTube PO token")
+    return {"youtube": yt_args}
+
+
 def _get_cookies_file() -> str:
     """Returns path to cookies file if available."""
     if COOKIES_FILE and os.path.isfile(COOKIES_FILE):
@@ -255,11 +267,7 @@ def _common_opts(download_id: str) -> dict:
         "writethumbnail": False,
         "writeinfojson":  False,
         "socket_timeout": 60,
-        "extractor_args": {
-            "youtube": {
-                "player_client": ["ios", "android"],
-            },
-        },
+        "extractor_args": _build_youtube_extractor_args(),
         "http_headers": {
             "User-Agent": (
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
