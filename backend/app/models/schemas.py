@@ -86,23 +86,6 @@ class DownloadRequest(BaseModel):
         return v
 
 
-class NoiseRemoverUrlRequest(BaseModel):
-    """
-    POST /noise/url
-    Frontend sends: { "url": "https://...", "mode": "voice", "boost": true }
-    """
-    url: str
-    mode: str = "music"    # "music" | "voice"
-    boost: bool = False
-
-    @field_validator("url")
-    @classmethod
-    def url_must_not_be_empty(cls, v):
-        if not v or not v.strip():
-            raise ValueError("URL cannot be empty")
-        return v.strip()
-
-
 # ── Response models (what we SEND BACK to the frontend) ───────────────────────
 
 class MediaFormat(BaseModel):

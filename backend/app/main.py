@@ -52,7 +52,6 @@ from app.config.settings import (
 )
 from app.routes.analyze import router as analyze_router
 from app.routes.download import router as download_router
-from app.routes.noise import router as noise_router
 from app.utils.helpers import cleanup_old_files
 
 class SafeStreamHandler(logging.StreamHandler):
@@ -150,7 +149,6 @@ app.add_middleware(
 # All routes in download_router will be at /api/...
 app.include_router(analyze_router,  prefix="/api", tags=["Analysis"])
 app.include_router(download_router, prefix="/api", tags=["Downloads"])
-app.include_router(noise_router,    prefix="/api", tags=["Noise Remover"])
 
 
 # ── Health Check Endpoint ──────────────────────────────────────────────────────

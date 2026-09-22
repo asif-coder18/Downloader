@@ -13,10 +13,9 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertTriangle, CheckCircle2, Link2, UploadCloud, Zap, AudioWaveform } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Link2, UploadCloud, Zap } from "lucide-react";
 import UrlInputForm from "@/app/components/UrlInputForm";
 import UploadForm from "@/app/components/UploadForm";
-import DenoiseForm from "@/app/components/DenoiseForm";
 import MediaPreviewCard from "@/app/components/MediaPreviewCard";
 import SkeletonCard from "@/app/components/SkeletonCard";
 import ToastContainer from "@/app/components/ToastContainer";
@@ -45,7 +44,7 @@ interface MediaInfo {
 }
 
 export default function HomePage() {
-  const [mode,         setMode]        = useState<"link" | "upload" | "denoise">("link");
+  const [mode,         setMode]        = useState<"link" | "upload">("link");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [mediaInfo,   setMediaInfo]   = useState<MediaInfo | null>(null);
   const [analyzeErr,  setAnalyzeErr]  = useState("");
@@ -192,11 +191,11 @@ export default function HomePage() {
             Download
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-lg">
-            Paste a link or upload a video, then download it as MP3. Clean the audio too.
+            Paste a link or upload a video to convert and download.
           </p>
         </motion.div>
 
-        {/* ── Mode toggle: Paste Link / Upload Video / Noise Remover ── */}
+        {/* ── Mode toggle: Paste Link / Upload Video ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -228,18 +227,6 @@ export default function HomePage() {
               <UploadCloud className="w-4 h-4" />
               Upload Video
             </button>
-            <button
-              type="button"
-              onClick={() => setMode("denoise")}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                mode === "denoise"
-                  ? "bg-white dark:bg-white/10 text-blue-600 dark:text-white shadow-sm"
-                  : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-              }`}
-            >
-              <AudioWaveform className="w-4 h-4" />
-              Noise Remover
-            </button>
           </div>
         </motion.div>
 
@@ -252,10 +239,8 @@ export default function HomePage() {
         >
           {mode === "link" ? (
             <UrlInputForm onSubmit={handleAnalyze} isLoading={isAnalyzing} />
-          ) : mode === "upload" ? (
-            <UploadForm onToast={addToast} isDownloading={isDownloading} />
           ) : (
-            <DenoiseForm onToast={addToast} />
+            <UploadForm onToast={addToast} isDownloading={isDownloading} />
           )}
         </motion.div>
 

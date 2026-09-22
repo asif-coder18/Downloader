@@ -292,21 +292,7 @@ export async function wakeUpBackend(onStatus = () => {}) {
   return false;
 }
 
-/**
- * Upload a video/audio file, remove its background noise, and download
- * the clean MP3.
- *
- * Uses XMLHttpRequest so we can report real upload progress.
- * Returns the same { token, filename } shape as the URL flow.
- *
- * @param {File}     file       File selected by the user
- * @param {function} onProgress Called with 0→100 values during upload
- * @param {string}   mode       "music" (keep music) or "voice" (RNNoise vocal focus)
- * @param {boolean}  boost      Apply loudness normalization to the output
- */
-export function denoiseUpload(file, onProgress = () => {}, mode = "music", boost = false) {
-  return _uploadFile("/api/noise/upload", file, onProgress, { mode, boost });
-}
+
 
 /**
  * Shared XHR upload helper — posts a file to an endpoint and resolves
