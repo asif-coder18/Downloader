@@ -7,6 +7,7 @@ import { Download, Music, Copy, Share2, Clock, Eye, CheckCircle, Loader2 } from 
 import { QUALITY_OPTIONS } from "@/lib/mockData";
 import { getPlatformGradient, copyToClipboard } from "@/lib/utils";
 import ProgressBar from "./ProgressBar";
+import { PlatformLogo } from "@/app/components/PlatformLogos";
 
 function DownloadBtn({ icon: Icon, label, colorClass, onClick, disabled, loading }) {
   return (
@@ -124,8 +125,9 @@ export default function MediaPreviewCard({
           initial={{ opacity: 0, x: -8 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
-          className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getPlatformGradient(media.platform)} shadow-md`}
+          className={`absolute top-3 left-3 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getPlatformGradient(media.platform)} shadow-md`}
         >
+          <PlatformLogo name={media.platform} className="w-3.5 h-3.5" />
           {media.platform}
         </motion.span>
 

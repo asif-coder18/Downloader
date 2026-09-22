@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Download } from "lucide-react";
+import { PlatformLogo } from "@/app/components/PlatformLogos";
 
 export default function Footer() {
   return (
@@ -38,8 +39,9 @@ export default function Footer() {
                 <li key={platform}>
                   <Link
                     href="/"
-                    className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-300 text-sm transition-colors duration-200"
+                    className="inline-flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-300 text-sm transition-colors duration-200"
                   >
+                    <PlatformLogo name={platform} className="w-4 h-4" />
                     {platform}
                   </Link>
                 </li>

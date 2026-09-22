@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link2, Search, X, Clipboard, Loader2 } from "lucide-react";
 import { detectPlatform } from "@/lib/mockData";
 import { isValidUrl as validateUrl, getPlatformGradient } from "@/lib/utils";
+import { PlatformLogo, TikTokLogo, InstagramLogo, FacebookLogo } from "@/app/components/PlatformLogos";
 
 export default function UrlInputForm({ onSubmit, isLoading }) {
   const [url, setUrl] = useState("");
@@ -28,8 +29,6 @@ export default function UrlInputForm({ onSubmit, isLoading }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!url.trim()) { setError("Please enter a URL."); return; }
-    // Bug fix: validate against supported domains (matches backend allowlist)
-    // A generic URL check accepted any URL, but the backend only supports specific platforms.
     if (!validateUrl(url.trim())) {
       setError("Doesn't look like a valid URL. Try something like https://www.instagram.com/reel/...");
       return;
@@ -44,7 +43,7 @@ export default function UrlInputForm({ onSubmit, isLoading }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full">
+    <form onSubmit={handleSubmit} className="w-full space-y-4">
 
       {/* Input container */}
       <motion.div
@@ -117,15 +116,35 @@ export default function UrlInputForm({ onSubmit, isLoading }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.2 }}
-            className="mt-2.5 flex items-center gap-2"
+            className="flex items-center gap-2"
           >
             <span className="text-slate-400 dark:text-slate-500 text-xs">Detected:</span>
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold text-white bg-gradient-to-r ${getPlatformGradient(platform.name)}`}>
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold text-white bg-gradient-to-r ${getPlatformGradient(platform.name)} shadow-sm`}>
+              <PlatformLogo name={platform.name} className="w-3.5 h-3.5" />
               {platform.name}
             </span>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Supported Platforms List with Logos */}
+      <div className="flex flex-wrap items-center justify-center gap-2.5 pt-1">
+        <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">Supported:</span>
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/10 text-xs font-medium text-slate-700 dark:text-slate-200 hover:scale-105 transition-transform">
+            <TikTokLogo className="w-3.5 h-3.5 text-black dark:text-white" />
+            TikTok
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/10 text-xs font-medium text-slate-700 dark:text-slate-200 hover:scale-105 transition-transform">
+            <InstagramLogo className="w-3.5 h-3.5" />
+            Instagram
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/10 text-xs font-medium text-slate-700 dark:text-slate-200 hover:scale-105 transition-transform">
+            <FacebookLogo className="w-3.5 h-3.5" />
+            Facebook
+          </span>
+        </div>
+      </div>
 
       {/* Error */}
       <AnimatePresence>
@@ -134,7 +153,7 @@ export default function UrlInputForm({ onSubmit, isLoading }) {
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="mt-2 text-red-400 text-xs"
+            className="text-red-400 text-xs"
           >
             {error}
           </motion.p>
@@ -147,7 +166,7 @@ export default function UrlInputForm({ onSubmit, isLoading }) {
         disabled={isLoading}
         whileHover={{ scale: 1.015 }}
         whileTap={{ scale: 0.985 }}
-        className="mt-4 w-full flex items-center justify-center gap-2 py-4 rounded-2xl
+        className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl
           bg-gradient-to-r from-blue-600 to-blue-500
           hover:from-blue-500 hover:to-blue-400
           disabled:opacity-60 disabled:cursor-not-allowed
@@ -170,3 +189,4 @@ export default function UrlInputForm({ onSubmit, isLoading }) {
     </form>
   );
 }
+
