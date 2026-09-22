@@ -244,16 +244,17 @@ export function uploadVideoToAudio(file, onProgress = () => {}) {
  *
  * @param {File}     file       File selected by the user
  * @param {function} onProgress Called with 0→100 values during upload
+ * @param {string}   strength   "standard" or "strong"
  */
-export function denoiseUpload(file, onProgress = () => {}) {
-  return _uploadFile("/api/noise/upload", file, onProgress);
+export function denoiseUpload(file, onProgress = () => {}, strength = "standard") {
+  return _uploadFile("/api/noise/upload", file, onProgress, { strength });
 }
 
 /**
  * Shared XHR upload helper — posts a file to an endpoint and resolves
  * with the { token, filename } JSON the backend returns.
  */
-function _uploadFile(endpoint, file, onProgress = () => {}) {
+function _uploadFile(endpoint, file, onProgress = () => {}, extraFields = {}) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", `${API_BASE}${endpoint}`);
@@ -266,6 +267,12 @@ function _uploadFile(endpoint, file, onProgress = () => {}) {
         onProgress(Math.round((e.loaded / e.total) * 88));
       }
     };
+
+    const form = new FormData();
+    form.append("file", file);
+    for (const [key, value] of Object.entries(extraFields)) {
+      form.append(key, value);
+    }
 
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
@@ -289,8 +296,6 @@ function _uploadFile(endpoint, file, onProgress = () => {}) {
     xhr.onerror   = () => reject(new Error("Network error during upload. Please try again."));
     xhr.ontimeout = () => reject(new Error("Upload timed out. The file may be too large."));
 
-    const form = new FormData();
-    form.append("file", file);
     xhr.send(form);
   });
 }

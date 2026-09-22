@@ -18,6 +18,7 @@ const MIME_ACCEPT = "video/*,audio/*,.mkv,.mov,.avi,.webm,.flv,.wmv,.m4v,.mpg,.m
 
 export default function DenoiseForm({ onToast }) {
   const [file,        setFile]        = useState(null);
+  const [strength,    setStrength]    = useState("standard");
   const [dragOver,    setDragOver]    = useState(false);
   const [state,       setState]       = useState(STEP_STATE.IDLE);
   const [progress,    setProgress]    = useState(0);
@@ -79,7 +80,7 @@ export default function DenoiseForm({ onToast }) {
     setLabel(`Uploading & removing noise from ${file.name}…`);
 
     try {
-      const data = await denoiseUpload(file, (p) => setProgress(p));
+      const data = await denoiseUpload(file, (p) => setProgress(p), strength);
       setLabel("Download starting…");
       triggerAnchorDownload(data.token, data.filename);
 
@@ -178,6 +179,31 @@ export default function DenoiseForm({ onToast }) {
           )}
         </AnimatePresence>
       </motion.div>
+
+      {/* Strength selector */}
+      <div className="flex items-center justify-center gap-3">
+        <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">Noise reduction:</span>
+        <div className="inline-flex rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 p-1">
+          {[
+            { key: "standard", label: "Standard" },
+            { key: "strong",   label: "Strong" },
+          ].map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              disabled={busy}
+              onClick={() => setStrength(key)}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                strength === key
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+              } ${busy ? "opacity-60 cursor-not-allowed" : ""}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Error */}
       <AnimatePresence>
