@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AudioWaveform, UploadCloud, FileAudio2, X, Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
-import { denoiseUpload, API_BASE } from "@/lib/api";
+import { denoiseUpload, wakeUpBackend, API_BASE } from "@/lib/api";
 import { isFileTooLarge, MAX_UPLOAD_SIZE_MB, formatBytes } from "@/lib/utils";
 import ProgressBar from "./ProgressBar";
 
@@ -78,10 +78,20 @@ export default function DenoiseForm({ onToast }) {
 
     setError("");
     setState(STEP_STATE.PROCESSING);
-    setLabel(`Uploading & removing noise from ${file.name}…`);
+    setLabel("Connecting to server…");
+    setProgress(2);
 
     try {
-      const data = await denoiseUpload(file, (p) => setProgress(p), mode, boost);
+      // Wake up the backend first (handles Render free-tier cold start)
+      const serverReady = await wakeUpBackend((status) => setLabel(status));
+      if (!serverReady) {
+        throw new Error("Server took too long to start. Please try again in a moment.");
+      }
+
+      setLabel(`Uploading & removing noise from ${file.name}…`);
+      setProgress(5);
+
+      const data = await denoiseUpload(file, (p) => setProgress(5 + Math.round(p * 0.95)), mode, boost);
       setLabel("Download starting…");
       triggerAnchorDownload(data.token, data.filename);
 

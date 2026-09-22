@@ -254,6 +254,45 @@ export function uploadVideoToAudio(file, onProgress = () => {}) {
 }
 
 /**
+ * Wake up the Render free-tier backend before uploading.
+ * Render free tier sleeps after 15 min of inactivity.
+ * Cold start takes 50-70 seconds. We poll /health until ready.
+ *
+ * @param {function} onStatus - called with status message strings
+ * @returns {Promise<boolean>} - true if server is ready
+ */
+export async function wakeUpBackend(onStatus = () => {}) {
+  const HEALTH_URL = `${API_BASE}/health`;
+  const MAX_WAIT_MS = 90_000;   // 90 seconds max
+  const POLL_INTERVAL = 3000;   // poll every 3 seconds
+  const start = Date.now();
+
+  onStatus("Waking up server… (may take up to 60s on first use)");
+
+  while (Date.now() - start < MAX_WAIT_MS) {
+    try {
+      const res = await fetch(HEALTH_URL, {
+        signal: AbortSignal.timeout(5000),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.status === "healthy") {
+          onStatus("Server ready!");
+          return true;
+        }
+      }
+    } catch {
+      // server still sleeping, keep polling
+    }
+    await new Promise((r) => setTimeout(r, POLL_INTERVAL));
+    const elapsed = Math.round((Date.now() - start) / 1000);
+    onStatus(`Starting server… (${elapsed}s)`);
+  }
+
+  return false;
+}
+
+/**
  * Upload a video/audio file, remove its background noise, and download
  * the clean MP3.
  *
