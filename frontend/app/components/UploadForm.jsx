@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { UploadCloud, Music, FileVideo2, X, Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 import { uploadVideoToAudio, API_BASE } from "@/lib/api";
+import { isFileTooLarge, MAX_UPLOAD_SIZE_MB } from "@/lib/utils";
 import ProgressBar from "./ProgressBar";
 
 const UPLOAD_STATE = {
@@ -31,6 +32,11 @@ export default function UploadForm({ onToast, isDownloading }) {
     setLabel("");
     setState(UPLOAD_STATE.IDLE);
     setProgress(0);
+    if (isFileTooLarge(selected)) {
+      setError(`File exceeds the ${MAX_UPLOAD_SIZE_MB}MB size limit. Please upload a smaller file.`);
+      setFile(null);
+      return;
+    }
     setFile(selected);
   }, [busy]);
 

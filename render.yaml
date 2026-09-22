@@ -4,7 +4,7 @@ services:
     name: socialdl-backend
     runtime: python
     rootDir: backend
-    buildCommand: pip install -r requirements.txt
+    buildCommand: apt-get update && apt-get install -y --no-install-recommends ffmpeg && pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: ALLOWED_ORIGINS
@@ -14,7 +14,7 @@ services:
       - key: FILE_TTL_SECONDS
         value: "300"
       - key: MAX_FILE_SIZE_MB
-        value: "500"
+        value: "2048"
       - key: PYTHON_VERSION
         value: "3.12.0"
 

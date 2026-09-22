@@ -77,7 +77,7 @@ PORT=8000
 ALLOWED_ORIGINS=https://your-app.vercel.app
 ALLOWED_ORIGIN_REGEX=https://.*\.vercel\.app
 FILE_TTL_SECONDS=300
-MAX_FILE_SIZE_MB=500
+MAX_FILE_SIZE_MB=2048
 ```
 
 Save with `Ctrl+O`, exit with `Ctrl+X`.

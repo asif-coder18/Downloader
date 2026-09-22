@@ -4,6 +4,23 @@
  * Shared utility functions used across the app.
  */
 
+// Maximum file size the backend accepts for uploads (matches .env MAX_FILE_SIZE_MB).
+// Keep in sync with backend/app/config/settings.py default.
+export const MAX_UPLOAD_SIZE_MB = 2048;
+
+/** True if a File/Blob is too big for upload. */
+export function isFileTooLarge(file) {
+  return file && file.size > MAX_UPLOAD_SIZE_MB * 1024 * 1024;
+}
+
+/** Formats a byte count into a readable size like "1.4 GB". */
+export function formatBytes(bytes) {
+  if (!bytes || bytes <= 0) return "0 B";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  return `${(bytes / 1024 ** i).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
+}
+
 /**
  * Formats an ISO date string into a human-readable relative time.
  * e.g. "2 hours ago", "3 days ago"

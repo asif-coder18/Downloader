@@ -4,7 +4,7 @@ import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AudioWaveform, Link2, UploadCloud, FileAudio2, X, Loader2, CheckCircle2, AlertTriangle, Clipboard } from "lucide-react";
 import { denoiseFromUrl, denoiseUpload, API_BASE } from "@/lib/api";
-import { isValidUrl as validateUrl } from "@/lib/utils";
+import { isValidUrl as validateUrl, isFileTooLarge, MAX_UPLOAD_SIZE_MB, formatBytes } from "@/lib/utils";
 import ProgressBar from "./ProgressBar";
 
 const STEP_STATE = {
@@ -129,6 +129,11 @@ export default function DenoiseForm({ onToast }) {
     setLabel("");
     setState(STEP_STATE.IDLE);
     setProgress(0);
+    if (isFileTooLarge(selected)) {
+      setError(`File is ${formatBytes(selected.size)} — exceeds the ${MAX_UPLOAD_SIZE_MB}MB size limit. Please upload a smaller file.`);
+      setFile(null);
+      return;
+    }
     setFile(selected);
   }, [busy]);
 
