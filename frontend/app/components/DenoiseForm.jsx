@@ -17,7 +17,7 @@ const STEP_STATE = {
 const MIME_ACCEPT = "video/*,audio/*,.mkv,.mov,.avi,.webm,.flv,.wmv,.m4v,.mpg,.mpeg,.3gp,.ts,.ogg,.oga,.opus,.flac,.wma,.mp3,.wav,.m4a,.aac";
 
 export default function DenoiseForm({ onToast }) {
-  const [inputMode,   setInputMode]   = useState<"link" | "upload">("link");
+  const [inputMode,   setInputMode]   = useState("link"); // "link" | "upload"
   const [url,         setUrl]         = useState("");
   const [file,        setFile]        = useState(null);
   const [dragOver,    setDragOver]    = useState(false);
