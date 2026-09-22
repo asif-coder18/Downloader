@@ -236,19 +236,6 @@ export function uploadVideoToAudio(file, onProgress = () => {}) {
 }
 
 /**
- * Remove noise from a video/audio URL and download the clean MP3.
- *
- * Same two-step shape as the regular downloads, so the caller just
- * triggers a browser download via /api/file/{token}.
- *
- * @param {string}   url        URL to the source video/audio
- * @param {function} onProgress Called with 0→100 values (fake ticker)
- */
-export async function denoiseFromUrl(url, onProgress) {
-  return _download("/api/noise/url", { url }, onProgress);
-}
-
-/**
  * Upload a video/audio file, remove its background noise, and download
  * the clean MP3.
  *
@@ -272,10 +259,11 @@ function _uploadFile(endpoint, file, onProgress = () => {}) {
     xhr.open("POST", `${API_BASE}${endpoint}`);
     xhr.timeout = 30 * 60 * 1000; // 30 min for large files up to 2GB
 
-    // Upload progress — only covers upload (~0-60%); conversion is server-side
+    // Upload progress — uploads ~0-88%; the remaining time is server-side
+    // processing (denoising / MP3 conversion), which shows as "Processing…".
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) {
-        onProgress(Math.round((e.loaded / e.total) * 60));
+        onProgress(Math.round((e.loaded / e.total) * 88));
       }
     };
 
