@@ -42,14 +42,14 @@ logger = logging.getLogger(__name__)
 # FFmpeg denoise mode presets.
 #
 #   "music" — Remove hiss + hum + rumble while keeping ALL music/voice.
-#             Best default for songs/videos.
+#             Uses a stronger afftdn pass.
 #   "voice" — RNNoise vocal focus: keep the main speaker, drop background
 #             chatter, other voices, fan & hiss (music is de-emphasised).
 DENOISE_MODES = {
-    "music": "highpass=f=100,bandreject=f=50:width=120,afftdn=nf=-20:nr=40",
-    "voice": "highpass=f=80,bandreject=f=50:width=120,afftdn=nf=-25{rnnoise}",
+    "music": "highpass=f=100,bandreject=f=50:width=120,afftdn=nf=-40:nr=90",
+    "voice": "highpass=f=80,bandreject=f=50:width=120,afftdn=nf=-40:nr=20{rnnoise}",
 }
-DEFAULT_MODE = "music"
+DEFAULT_MODE = "voice"
 
 # Optional final stage: loudness normalise to a broadcast-friendly level
 # (the "amplifier" the user asked for). Raised loudness, silence stays quiet.
@@ -94,8 +94,8 @@ def build_filter(mode: str = DEFAULT_MODE, boost: bool = False) -> str:
 
     chain = template.replace(
         "{rnnoise}",
-        f",arnndn=model={_ffmpeg_safe_path(_RNNOISE_MODEL)}:mix=0.8"
-        if _RNNOISE_MODEL.exists() else ",afftdn=nf=-30:nr=20",
+        f",arnndn=model={_ffmpeg_safe_path(_RNNOISE_MODEL)}:mix=0.9"
+        if _RNNOISE_MODEL.exists() else ",afftdn=nf=-30:nr=90",
     )
 
     if boost:

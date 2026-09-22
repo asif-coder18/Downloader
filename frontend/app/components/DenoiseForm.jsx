@@ -18,7 +18,7 @@ const MIME_ACCEPT = "video/*,audio/*,.mkv,.mov,.avi,.webm,.flv,.wmv,.m4v,.mpg,.m
 
 export default function DenoiseForm({ onToast }) {
   const [file,        setFile]        = useState(null);
-  const [mode,        setMode]        = useState("music");
+  const [mode,        setMode]        = useState("voice");
   const [boost,       setBoost]       = useState(true);
   const [dragOver,    setDragOver]    = useState(false);
   const [state,       setState]       = useState(STEP_STATE.IDLE);
