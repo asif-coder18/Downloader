@@ -182,3 +182,36 @@ def safe_filename(title: str, max_length: int = 80) -> str:
     safe = safe.strip('_.')
     # Truncate to max_length
     return safe[:max_length] or "download"
+
+
+# ── Shared cookies helper ──────────────────────────────────────────────────────
+# Centralised here to avoid duplication across analyzer.py and downloader.py.
+
+def get_cookies_file() -> str:
+    """
+    Returns the path to a Netscape cookies file, or an empty string.
+    Supports two sources (checked in order):
+      1. COOKIES_FILE env var  — direct path to a cookies.txt on disk
+      2. INSTAGRAM_COOKIES env var — base64-encoded cookie content
+                                     (written to a temp file on first call)
+    """
+    import base64
+    import tempfile
+    from app.config.settings import COOKIES_FILE, INSTAGRAM_COOKIES
+
+    if COOKIES_FILE and os.path.isfile(COOKIES_FILE):
+        return COOKIES_FILE
+
+    if INSTAGRAM_COOKIES:
+        try:
+            decoded = base64.b64decode(INSTAGRAM_COOKIES).decode("utf-8")
+            tmp = tempfile.NamedTemporaryFile(
+                mode="w", suffix=".txt", delete=False, prefix="cookies_"
+            )
+            tmp.write(decoded)
+            tmp.close()
+            return tmp.name
+        except Exception as e:
+            logger.warning(f"Failed to decode INSTAGRAM_COOKIES: {e}")
+
+    return ""

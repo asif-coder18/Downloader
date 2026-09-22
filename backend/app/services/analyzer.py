@@ -21,46 +21,24 @@ This tells yt-dlp: "Just give me the info, don't download anything yet."
 
 import yt_dlp
 import logging
-import os
-import tempfile
-import base64
 from typing import Dict, Any
 
 from app.models.schemas import MediaInfo
-from app.config.settings import COOKIES_FILE, INSTAGRAM_COOKIES, MAX_VIDEO_DURATION_SECONDS
+from app.config.settings import MAX_VIDEO_DURATION_SECONDS
 from app.utils.helpers import (
     detect_platform,
     format_duration,
     format_view_count,
     is_valid_url,
+    get_cookies_file,
 )
 
 logger = logging.getLogger(__name__)
 
 
 def _get_cookies_file() -> str:
-    """
-    Returns path to cookies file if available.
-    Supports:
-      1. Direct file path via COOKIES_FILE env var
-      2. Base64-encoded cookies via INSTAGRAM_COOKIES env var (written to temp file)
-    """
-    if COOKIES_FILE and os.path.isfile(COOKIES_FILE):
-        return COOKIES_FILE
-
-    if INSTAGRAM_COOKIES:
-        try:
-            decoded = base64.b64decode(INSTAGRAM_COOKIES).decode("utf-8")
-            tmp = tempfile.NamedTemporaryFile(
-                mode="w", suffix=".txt", delete=False, prefix="cookies_"
-            )
-            tmp.write(decoded)
-            tmp.close()
-            return tmp.name
-        except Exception as e:
-            logger.warning(f"Failed to decode INSTAGRAM_COOKIES: {e}")
-
-    return ""
+    """Delegates to the shared helper in utils.helpers."""
+    return get_cookies_file()
 
 
 def _build_ydl_opts(extra: dict = None) -> dict:
@@ -121,7 +99,7 @@ async def analyze_url(url: str) -> MediaInfo:
 
     # Step 2: Run yt-dlp in a thread (because it's blocking/synchronous)
     import asyncio
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()  # Bug fix: get_event_loop() is deprecated in Python 3.10+
 
     try:
         info = await loop.run_in_executor(None, _extract_info, url)

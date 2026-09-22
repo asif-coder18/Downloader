@@ -28,8 +28,15 @@ export default function UrlInputForm({ onSubmit, isLoading }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!url.trim()) { setError("Please enter a URL."); return; }
+    // Bug fix: validate against supported domains (matches backend allowlist)
+    // A generic URL check accepted any URL, but the backend only supports specific platforms.
     if (!validateUrl(url.trim())) {
       setError("Doesn't look like a valid URL. Try something like https://www.instagram.com/reel/...");
+      return;
+    }
+    const SUPPORTED_DOMAINS = /instagram\.com|tiktok\.com|twitter\.com|x\.com|facebook\.com|fb\.watch|vimeo\.com|reddit\.com|pinterest\.com/i;
+    if (!SUPPORTED_DOMAINS.test(url.trim())) {
+      setError("Unsupported site. Supported: TikTok, Instagram, Facebook, Twitter/X, Vimeo, Reddit, Pinterest.");
       return;
     }
     setError("");

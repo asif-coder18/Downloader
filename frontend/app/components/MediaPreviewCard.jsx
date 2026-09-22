@@ -69,7 +69,8 @@ export default function MediaPreviewCard({
 
   const handleDownloadClick = (format) => {
     if (isDownloading) return;
-    const qualityLabel = selectedQuality === "best" ? "Best" : selectedQuality;
+    // Bug fix: always send lowercase quality to backend (Pydantic enum is lowercase)
+    const qualityLabel = selectedQuality.toLowerCase();
     onDownload?.(format, qualityLabel);
   };
 

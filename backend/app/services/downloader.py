@@ -18,8 +18,6 @@ import uuid
 import shutil
 import asyncio
 import logging
-import base64
-import tempfile
 from pathlib import Path
 from typing import Tuple, Optional
 
@@ -27,12 +25,10 @@ import yt_dlp
 
 from app.config.settings import (
     DOWNLOADS_DIR,
-    COOKIES_FILE,
-    INSTAGRAM_COOKIES,
     MAX_VIDEO_DURATION_SECONDS,
 )
 from app.models.schemas import VideoQuality, DownloadFormat
-from app.utils.helpers import safe_filename, safe_delete_file, is_valid_url
+from app.utils.helpers import safe_filename, safe_delete_file, is_valid_url, get_cookies_file
 
 logger = logging.getLogger(__name__)
 
@@ -84,23 +80,8 @@ else:
 
 
 def _get_cookies_file() -> str:
-    """Returns path to cookies file if available."""
-    if COOKIES_FILE and os.path.isfile(COOKIES_FILE):
-        return COOKIES_FILE
-
-    if INSTAGRAM_COOKIES:
-        try:
-            decoded = base64.b64decode(INSTAGRAM_COOKIES).decode("utf-8")
-            tmp = tempfile.NamedTemporaryFile(
-                mode="w", suffix=".txt", delete=False, prefix="cookies_"
-            )
-            tmp.write(decoded)
-            tmp.close()
-            return tmp.name
-        except Exception as e:
-            logger.warning(f"Failed to decode INSTAGRAM_COOKIES: {e}")
-
-    return ""
+    """Delegates to the shared helper in utils.helpers."""
+    return get_cookies_file()
 
 
 # ── ANSI color code stripper ───────────────────────────────────────────────────
@@ -161,7 +142,7 @@ async def download_media(
     logger.info(f"⬇️  Download start: {url} | quality={quality} | format={fmt}")
 
     download_id = str(uuid.uuid4())[:8]
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()  # Bug fix: get_event_loop() is deprecated in Python 3.10+
 
     try:
         result = await loop.run_in_executor(
@@ -230,10 +211,20 @@ def _run_download(
         info  = ydl.extract_info(url, download=True)
         title = info.get("title", "download")
 
-    # Reject videos longer than the 2-hour limit
+    # Reject videos longer than the 2-hour limit BEFORE keeping file (Bug fix: was leaking disk space)
     duration = info.get("duration")
     if duration is not None and duration > MAX_VIDEO_DURATION_SECONDS:
         limit_min = MAX_VIDEO_DURATION_SECONDS // 60
+        # Clean up the file that was already written to disk
+        partial = DOWNLOADS_DIR / f"{download_id}.{expect_ext}"
+        if partial.exists():
+            partial.unlink(ignore_errors=True)
+        else:
+            # Try any extension variant
+            for f in DOWNLOADS_DIR.iterdir():
+                if f.stem == download_id:
+                    f.unlink(ignore_errors=True)
+                    break
         raise ValueError(
             f"This video is longer than the {limit_min}-minute limit and cannot be downloaded."
         )
