@@ -83,10 +83,37 @@ def denoise_audio(
         logger.info("🧠 Applying noisereduce algorithm...")
         data, rate = sf.read(str(temp_wav_in))
         
+        # Check if stereo/multichannel
+        is_stereo = len(data.shape) > 1
+        
+        # noisereduce expects shape (channels, samples) for multi-channel
+        if is_stereo:
+            y = data.T
+        else:
+            y = data
+            
+        # Estimate noise from the first 0.5 seconds
+        noise_duration = 0.5
+        noise_samples = int(rate * noise_duration)
+        
+        if noise_samples > y.shape[-1]:
+            # If audio is very short, just use the whole audio as profile
+            y_noise = y
+        else:
+            if is_stereo:
+                y_noise = y[:, :noise_samples]
+            else:
+                y_noise = y[:noise_samples]
+
         # Configure noise reduction strictness based on user mode
         prop_dec = 0.95 if mode == "voice" else 0.60
         
-        reduced_noise = nr.reduce_noise(y=data, sr=rate, stationary=True, prop_decrease=prop_dec)
+        reduced_noise = nr.reduce_noise(y=y, sr=rate, y_noise=y_noise, prop_decrease=prop_dec)
+        
+        # Restore original shape (samples, channels)
+        if is_stereo:
+            reduced_noise = reduced_noise.T
+            
         sf.write(str(temp_wav_out), reduced_noise, rate)
         
         # Step 3: Encode the cleaned WAV back to MP3
