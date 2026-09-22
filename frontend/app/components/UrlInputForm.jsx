@@ -43,20 +43,20 @@ export default function UrlInputForm({ onSubmit, isLoading }) {
       <motion.div
         animate={{
           boxShadow: focused
-            ? "0 0 0 3px rgba(139,92,246,0.2), 0 8px 32px rgba(139,92,246,0.12)"
+            ? "0 0 0 3px rgba(37,99,235,0.2), 0 8px 32px rgba(37,99,235,0.12)"
             : "0 2px 8px rgba(0,0,0,0.06)",
         }}
         transition={{ duration: 0.2 }}
         className={`relative rounded-2xl transition-all duration-200
           bg-white/70 dark:bg-white/[0.06] backdrop-blur-sm
           border ${focused
-            ? "border-violet-400/60 dark:border-violet-500/50"
+            ? "border-blue-400/60 dark:border-blue-500/50"
             : "border-slate-200/80 dark:border-white/10"
           }`}
       >
         {/* Left icon */}
         <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-          <Link2 className={`w-5 h-5 transition-colors duration-200 ${focused ? "text-violet-500" : "text-slate-400"}`} />
+          <Link2 className={`w-5 h-5 transition-colors duration-200 ${focused ? "text-blue-500" : "text-slate-400"}`} />
         </div>
 
         {/* Input */}
@@ -67,7 +67,7 @@ export default function UrlInputForm({ onSubmit, isLoading }) {
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           placeholder="Paste TikTok, Instagram or Facebook link…"
-          className="w-full pl-12 pr-36 py-4 bg-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none rounded-2xl"
+          className="w-full pl-12 pr-36 py-4 bg-transparent text-gray-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none rounded-2xl"
           disabled={isLoading}
           aria-label="Social media URL"
         />
@@ -141,11 +141,11 @@ export default function UrlInputForm({ onSubmit, isLoading }) {
         whileHover={{ scale: 1.015 }}
         whileTap={{ scale: 0.985 }}
         className="mt-4 w-full flex items-center justify-center gap-2 py-4 rounded-2xl
-          bg-gradient-to-r from-violet-600 to-fuchsia-600
-          hover:from-violet-500 hover:to-fuchsia-500
+          bg-gradient-to-r from-blue-600 to-blue-500
+          hover:from-blue-500 hover:to-blue-400
           disabled:opacity-60 disabled:cursor-not-allowed
           text-white font-semibold text-sm
-          shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50
+          shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50
           transition-all duration-200"
       >
         {isLoading ? (

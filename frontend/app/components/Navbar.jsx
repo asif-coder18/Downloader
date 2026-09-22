@@ -19,7 +19,7 @@ export default function Navbar() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "bg-white/80 dark:bg-[#030712]/85 backdrop-blur-2xl border-b border-slate-200/60 dark:border-white/[0.07] shadow-sm shadow-slate-200/50 dark:shadow-black/30"
+          ? "bg-white/80 dark:bg-[#0F2747]/85 backdrop-blur-2xl border-b border-slate-200/60 dark:border-white/[0.07] shadow-sm shadow-slate-200/50 dark:shadow-black/30"
           : "bg-transparent"
       }`}
     >
@@ -31,11 +31,11 @@ export default function Navbar() {
             <motion.div
               whileHover={{ rotate: -8, scale: 1.1 }}
               transition={{ type: "spring", stiffness: 400 }}
-              className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-violet-500/30"
+              className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#0F2747] to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30"
             >
               <Download className="w-4 h-4 text-white" />
             </motion.div>
-            <span className="font-bold text-lg text-slate-900 dark:text-white tracking-tight">
+            <span className="font-bold text-lg text-gray-800 dark:text-white tracking-tight">
               Downloader
             </span>
           </Link>

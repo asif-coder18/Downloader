@@ -5,19 +5,19 @@ import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 
 export default function ProgressBar({ progress, label, isError = false, isDone = false }) {
   const barColor = isError
-    ? "bg-gradient-to-r from-red-500 to-rose-400"
+    ? "bg-gradient-to-r from-red-600 to-red-400"
     : isDone
-    ? "bg-gradient-to-r from-emerald-400 to-teal-400"
-    : "bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500";
+    ? "bg-gradient-to-r from-green-600 to-green-400"
+    : "bg-gradient-to-r from-blue-600 via-blue-500 to-sky-400";
 
   const bgColor = isError
     ? "bg-red-500/8 dark:bg-red-500/10 border-red-500/20"
     : isDone
-    ? "bg-emerald-500/8 dark:bg-emerald-500/10 border-emerald-500/20"
-    : "bg-violet-500/5 dark:bg-white/[0.04] border-violet-400/20 dark:border-white/10";
+    ? "bg-green-500/8 dark:bg-green-500/10 border-green-500/20"
+    : "bg-blue-500/5 dark:bg-white/[0.04] border-blue-400/20 dark:border-white/10";
 
   const Icon = isError ? XCircle : isDone ? CheckCircle2 : Loader2;
-  const iconColor = isError ? "text-red-400" : isDone ? "text-emerald-400" : "text-violet-400";
+  const iconColor = isError ? "text-red-500" : isDone ? "text-green-500" : "text-blue-500";
 
   return (
     <motion.div
@@ -35,7 +35,7 @@ export default function ProgressBar({ progress, label, isError = false, isDone =
           </span>
         </div>
         {!isError && (
-          <span className="text-sm font-bold text-slate-900 dark:text-white tabular-nums ml-2 flex-shrink-0">
+          <span className="text-sm font-bold text-gray-800 dark:text-white tabular-nums ml-2 flex-shrink-0">
             {progress}%
           </span>
         )}
@@ -58,7 +58,7 @@ export default function ProgressBar({ progress, label, isError = false, isDone =
         </p>
       )}
       {isDone && (
-        <p className="text-emerald-500 dark:text-emerald-400 text-xs mt-2.5">
+        <p className="text-green-600 dark:text-green-400 text-xs mt-2.5">
           Check your Downloads folder
         </p>
       )}

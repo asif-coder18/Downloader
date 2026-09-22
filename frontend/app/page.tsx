@@ -181,11 +181,11 @@ export default function HomePage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-10"
         >
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-400/20 text-violet-600 dark:text-violet-300 text-xs font-semibold mb-5">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-400/20 text-blue-600 dark:text-blue-300 text-xs font-semibold mb-5">
             <Zap className="w-3 h-3" />
             Free · Fast · No Limits
           </div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white mb-3 tracking-tight">
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-800 dark:text-white mb-3 tracking-tight">
             Download
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-lg">
@@ -213,8 +213,8 @@ export default function HomePage() {
               exit={{ opacity: 0 }}
               className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-3"
             >
-              <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-              <p className="text-red-300 text-sm font-medium">{analyzeErr}</p>
+              <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <p className="text-red-400 text-sm font-medium">{analyzeErr}</p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -227,10 +227,10 @@ export default function HomePage() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="mb-4 p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center gap-2"
+              className="mb-4 p-3 rounded-xl bg-green-500/15 border border-green-500/30 flex items-center gap-2"
             >
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-              <p className="text-emerald-300 text-sm font-medium">
+              <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
+              <p className="text-green-600 dark:text-green-400 text-sm font-medium">
                 Download complete! You can download another video now.
               </p>
             </motion.div>

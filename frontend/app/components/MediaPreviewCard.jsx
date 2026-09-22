@@ -111,8 +111,8 @@ export default function MediaPreviewCard({
             sizes="(max-width: 768px) 100vw, 700px"
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-violet-900/60 to-fuchsia-900/40">
-            <Download className="w-16 h-16 text-violet-400/30" />
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#0F2747]/80 to-blue-900/50">
+            <Download className="w-16 h-16 text-blue-400/30" />
           </div>
         )}
         {/* Gradient overlay */}
@@ -141,7 +141,7 @@ export default function MediaPreviewCard({
       <div className="p-5 space-y-4">
 
         {/* Title */}
-        <h2 className="text-slate-900 dark:text-white font-semibold text-base leading-snug line-clamp-2">
+        <h2 className="text-gray-800 dark:text-white font-semibold text-base leading-snug line-clamp-2">
           {media.title}
         </h2>
 
@@ -176,8 +176,8 @@ export default function MediaPreviewCard({
                   px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all duration-200
                   disabled:opacity-40 disabled:cursor-not-allowed
                   ${selectedQuality === q.value
-                    ? "bg-violet-600 border-violet-500 text-white shadow-md shadow-violet-500/30"
-                    : "bg-white/60 dark:bg-white/5 border-slate-200/80 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:border-violet-400/50 dark:hover:border-violet-500/40 hover:text-violet-600 dark:hover:text-violet-300"
+                    ? "bg-blue-600 border-blue-500 text-white shadow-md shadow-blue-500/30"
+                    : "bg-white/60 dark:bg-white/5 border-slate-200/80 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:border-blue-400/50 dark:hover:border-blue-500/40 hover:text-blue-600 dark:hover:text-blue-300"
                   }
                 `}
               >
@@ -207,7 +207,7 @@ export default function MediaPreviewCard({
             <DownloadBtn
               icon={Download}
               label="Video"
-              colorClass="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 shadow-violet-500/25"
+              colorClass="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 shadow-blue-500/25"
               onClick={() => handleDownloadClick("Video")}
               disabled={isDownloading}
               loading={isDownloading && activeFormat === "Video"}
@@ -236,7 +236,7 @@ export default function MediaPreviewCard({
               text-xs font-medium transition-all duration-200"
           >
             {copied
-              ? <><CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> Copied!</>
+              ? <><CheckCircle className="w-3.5 h-3.5 text-green-500" /> Copied!</>
               : <><Copy className="w-3.5 h-3.5" /> Copy Link</>
             }
           </button>

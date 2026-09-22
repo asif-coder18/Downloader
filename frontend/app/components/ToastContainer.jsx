@@ -16,14 +16,14 @@ import { CheckCircle, XCircle, Info, AlertTriangle, X } from "lucide-react";
 const TOAST_CONFIG = {
   success: {
     icon: CheckCircle,
-    bg: "bg-emerald-500/20 border-emerald-500/30",
-    icon_color: "text-emerald-400",
-    text: "text-emerald-100",
+    bg: "bg-green-500/20 border-green-500/30",
+    icon_color: "text-green-500",
+    text: "text-green-100",
   },
   error: {
     icon: XCircle,
     bg: "bg-red-500/20 border-red-500/30",
-    icon_color: "text-red-400",
+    icon_color: "text-red-500",
     text: "text-red-100",
   },
   info: {
