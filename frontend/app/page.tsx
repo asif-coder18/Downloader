@@ -13,8 +13,9 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertTriangle, CheckCircle2, Zap } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Link2, UploadCloud, Zap } from "lucide-react";
 import UrlInputForm from "@/app/components/UrlInputForm";
+import UploadForm from "@/app/components/UploadForm";
 import MediaPreviewCard from "@/app/components/MediaPreviewCard";
 import SkeletonCard from "@/app/components/SkeletonCard";
 import ToastContainer from "@/app/components/ToastContainer";
@@ -43,6 +44,7 @@ interface MediaInfo {
 }
 
 export default function HomePage() {
+  const [mode,         setMode]        = useState<"link" | "upload">("link");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [mediaInfo,   setMediaInfo]   = useState<MediaInfo | null>(null);
   const [analyzeErr,  setAnalyzeErr]  = useState("");
@@ -189,8 +191,43 @@ export default function HomePage() {
             Download
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-lg">
-            Paste a link from TikTok, Instagram or Facebook to get started.
+            Paste a link or upload a video, then download it as MP3.
           </p>
+        </motion.div>
+
+        {/* ── Mode toggle: Paste Link / Upload Video ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="flex justify-center mb-6"
+        >
+          <div className="inline-flex items-center p-1 rounded-2xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/10 gap-1">
+            <button
+              type="button"
+              onClick={() => setMode("link")}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                mode === "link"
+                  ? "bg-white dark:bg-white/10 text-blue-600 dark:text-white shadow-sm"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              <Link2 className="w-4 h-4" />
+              Paste Link
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("upload")}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                mode === "upload"
+                  ? "bg-white dark:bg-white/10 text-blue-600 dark:text-white shadow-sm"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              <UploadCloud className="w-4 h-4" />
+              Upload Video
+            </button>
+          </div>
         </motion.div>
 
         {/* ── URL Input ── */}
@@ -200,63 +237,75 @@ export default function HomePage() {
           transition={{ delay: 0.1 }}
           className="mb-6"
         >
-          <UrlInputForm onSubmit={handleAnalyze} isLoading={isAnalyzing} />
+          {mode === "link" ? (
+            <UrlInputForm onSubmit={handleAnalyze} isLoading={isAnalyzing} />
+          ) : (
+            <UploadForm onToast={addToast} isDownloading={isDownloading} />
+          )}
         </motion.div>
 
         {/* ── Analyze error ── */}
-        <AnimatePresence>
-          {analyzeErr && (
-            <motion.div
-              key="analyze-err"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-3"
-            >
-              <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-              <p className="text-red-400 text-sm font-medium">{analyzeErr}</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {mode === "link" && (
+          <AnimatePresence>
+            {analyzeErr && (
+              <motion.div
+                key="analyze-err"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-3"
+              >
+                <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                <p className="text-red-400 text-sm font-medium">{analyzeErr}</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
 
         {/* ── Download done banner ── */}
-        <AnimatePresence>
-          {dlState === DL_STATE.DONE && (
-            <motion.div
-              key="dl-done"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="mb-4 p-3 rounded-xl bg-green-500/15 border border-green-500/30 flex items-center gap-2"
-            >
-              <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
-              <p className="text-green-600 dark:text-green-400 text-sm font-medium">
-                Download complete! You can download another video now.
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {mode === "link" && (
+          <AnimatePresence>
+            {dlState === DL_STATE.DONE && (
+              <motion.div
+                key="dl-done"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="mb-4 p-3 rounded-xl bg-green-500/15 border border-green-500/30 flex items-center gap-2"
+              >
+                <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
+                <p className="text-green-600 dark:text-green-400 text-sm font-medium">
+                  Download complete! You can download another video now.
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
 
         {/* ── Skeleton ── */}
-        <AnimatePresence>
-          {isAnalyzing && <SkeletonCard key="skeleton" />}
-        </AnimatePresence>
+        {mode === "link" && (
+          <AnimatePresence>
+            {isAnalyzing && <SkeletonCard key="skeleton" />}
+          </AnimatePresence>
+        )}
 
         {/* ── Media card ── */}
-        <AnimatePresence>
-          {mediaInfo && !isAnalyzing && (
-            <MediaPreviewCard
-              key="media-card"
-              media={mediaInfo}
-              onDownload={handleDownload}
-              isDownloading={isDownloading}
-              downloadProgress={dlProgress}
-              downloadLabel={dlLabel}
-              downloadState={dlState}
-              activeFormat={activeFormat}
-            />
-          )}
-        </AnimatePresence>
+        {mode === "link" && (
+          <AnimatePresence>
+            {mediaInfo && !isAnalyzing && (
+              <MediaPreviewCard
+                key="media-card"
+                media={mediaInfo}
+                onDownload={handleDownload}
+                isDownloading={isDownloading}
+                downloadProgress={dlProgress}
+                downloadLabel={dlLabel}
+                downloadState={dlState}
+                activeFormat={activeFormat}
+              />
+            )}
+          </AnimatePresence>
+        )}
       </div>
 
       <ToastContainer toasts={toasts} removeToast={removeToast} />

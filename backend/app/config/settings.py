@@ -55,7 +55,11 @@ ALLOWED_ORIGIN_REGEX = os.getenv(
 FILE_TTL_SECONDS = int(os.getenv("FILE_TTL_SECONDS", "300"))
 
 # ── yt-dlp ────────────────────────────────────────────────────────────────────
-MAX_FILE_SIZE_BYTES = int(os.getenv("MAX_FILE_SIZE_MB", "500")) * 1024 * 1024
+MAX_FILE_SIZE_BYTES = int(os.getenv("MAX_FILE_SIZE_MB", "2048")) * 1024 * 1024
+
+# ── Upload ────────────────────────────────────────────────────────────────────
+# Videos longer than this (minutes) are rejected on upload.
+MAX_VIDEO_DURATION_SECONDS = int(os.getenv("MAX_VIDEO_DURATION_MINUTES", "120")) * 60
 
 # ── Cookies ───────────────────────────────────────────────────────────────────
 # Path to a Netscape-format cookies.txt file exported from your browser.

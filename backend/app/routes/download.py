@@ -41,17 +41,20 @@ THE NEW TWO-STEP FLOW:
 import os
 import uuid
 import time
+import asyncio
 import logging
 import threading
 from pathlib import Path
 from typing import Dict
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse, JSONResponse
 
+from app.config.settings import TEMP_DIR, MAX_FILE_SIZE_BYTES, MAX_VIDEO_DURATION_SECONDS
 from app.models.schemas import DownloadRequest, DownloadFormat
+from app.services.converter import extract_audio_mp3, probe_duration
 from app.services.downloader import download_media
-from app.utils.helpers import safe_delete_file
+from app.utils.helpers import safe_delete_file, safe_filename
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -174,6 +177,95 @@ async def download_audio_endpoint(request: DownloadRequest):
     except Exception as e:
         logger.error(f"Audio download server error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Audio download failed. Please try again.")
+
+
+# ── POST /upload/audio ─────────────────────────────────────────────────────────
+
+# Accepted extensions — any container that FFmpeg can read
+_ALLOWED_VIDEO_EXTS = {".mp4", ".mkv", ".mov", ".avi", ".webm", ".flv", ".wmv", ".m4v", ".mpg", ".mpeg", ".3gp", ".ts", ".ogv"}
+_MAX_UPLOAD_BYTES = MAX_FILE_SIZE_BYTES  # same 2GB cap as yt-dlp downloads
+
+
+@router.post("/upload/audio", summary="Convert uploaded video to MP3 audio")
+async def upload_audio_endpoint(file: UploadFile = File(...)):
+    """
+    Step 1 of the two-step download flow for uploaded videos.
+
+    Accepts any video file, extracts its audio with FFmpeg,
+    saves the MP3 on the server, and returns a one-time download token.
+
+    Request:  multipart/form-data with field "file" (any video file)
+    Response: { "token": "abc123", "filename": "audio.mp3", "size": 4567890 }
+    """
+    original_name = file.filename or "video.mp4"
+    ext = Path(original_name).suffix.lower() or ".mp4"
+
+    if ext not in _ALLOWED_VIDEO_EXTS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file type '{ext}'. Please upload a video (mp4, mkv, mov, avi, webm, etc.).",
+        )
+
+    work_id  = str(uuid.uuid4())[:10]
+    temp_vid = TEMP_DIR / f"upload_{work_id}{ext}"
+
+    # Stream upload to disk in chunks so we don't hold the whole file in RAM
+    try:
+        size = 0
+        with open(temp_vid, "wb") as out:
+            while True:
+                chunk = await file.read(1024 * 1024)  # 1MB chunks
+                if not chunk:
+                    break
+                size += len(chunk)
+                if size > _MAX_UPLOAD_BYTES:
+                    raise HTTPException(
+                        status_code=413,
+                        detail=f"File exceeds the {MAX_FILE_SIZE_BYTES // (1024 * 1024)}MB size limit.",
+                    )
+                out.write(chunk)
+    finally:
+        await file.close()
+
+    if size == 0:
+        safe_delete_file(str(temp_vid), delay_seconds=0)
+        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+
+    # ── Duration limit: reject videos longer than 2 hours ──
+    duration = await asyncio.to_thread(probe_duration, str(temp_vid))
+    if duration is not None and duration > MAX_VIDEO_DURATION_SECONDS:
+        safe_delete_file(str(temp_vid), delay_seconds=0)
+        limit_min = MAX_VIDEO_DURATION_SECONDS // 60
+        raise HTTPException(
+            status_code=400,
+            detail=f"Video is longer than the {limit_min}-minute limit. Please upload a shorter video.",
+        )
+
+    try:
+        logger.info(f"📤 Upload received: {original_name} ({size:,} bytes)")
+        mp3_path = await asyncio.to_thread(extract_audio_mp3, str(temp_vid), str(TEMP_DIR))
+
+        token     = _store_token(mp3_path, f"{Path(original_name).stem}.mp3", "audio/mpeg")
+        file_size = os.path.getsize(mp3_path)
+
+        logger.info(f"🎧 Audio ready: {Path(mp3_path).name} ({file_size:,} bytes) | token={token[:8]}…")
+
+        return JSONResponse({
+            "token":    token,
+            "filename": f"{safe_filename(Path(original_name).stem)}.mp3",
+            "size":     file_size,
+            "mime":     "audio/mpeg",
+        })
+
+    except ValueError as e:
+        logger.warning(f"Upload conversion error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Upload conversion server error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Audio conversion failed. Please try again.")
+    finally:
+        # Always remove the uploaded source video
+        safe_delete_file(str(temp_vid), delay_seconds=0)
 
 
 # ── GET /file/{token} ─────────────────────────────────────────────────────────

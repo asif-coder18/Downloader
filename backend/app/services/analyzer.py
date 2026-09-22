@@ -27,7 +27,7 @@ import base64
 from typing import Dict, Any
 
 from app.models.schemas import MediaInfo
-from app.config.settings import COOKIES_FILE, INSTAGRAM_COOKIES
+from app.config.settings import COOKIES_FILE, INSTAGRAM_COOKIES, MAX_VIDEO_DURATION_SECONDS
 from app.utils.helpers import (
     detect_platform,
     format_duration,
@@ -192,6 +192,13 @@ def _build_media_info(url: str, info: Dict[str, Any]) -> MediaInfo:
     # Format duration from seconds to "M:SS" format
     duration_secs = info.get("duration")
     duration = format_duration(duration_secs)
+
+    # Reject videos longer than the 2-hour limit
+    if duration_secs is not None and duration_secs > MAX_VIDEO_DURATION_SECONDS:
+        limit_min = MAX_VIDEO_DURATION_SECONDS // 60
+        raise ValueError(
+            f"This video is longer than the {limit_min}-minute limit and cannot be downloaded."
+        )
 
     # Get uploader/channel name
     uploader = (

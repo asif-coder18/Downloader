@@ -19,6 +19,8 @@
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+export { API_BASE };
+
 // ─── Analyze ──────────────────────────────────────────────────────────────────
 
 /**
@@ -217,6 +219,57 @@ async function _blobDownload(response) {
     URL.revokeObjectURL(blobUrl);
     if (document.body.contains(a)) document.body.removeChild(a);
   }, 2000);
+}
+
+/**
+ * Upload a video file and get the extracted audio (MP3) back.
+ *
+ * Uses XMLHttpRequest so we can report real upload progress.
+ * Returns the same { token, filename } shape as the URL download flow,
+ * so the caller just triggers a browser download via /api/file/{token}.
+ *
+ * @param {File}     file       The video file selected by the user
+ * @param {function} onProgress Called with 0→100 values during upload
+ */
+export function uploadVideoToAudio(file, onProgress = () => {}) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${API_BASE}/api/upload/audio`);
+    xhr.timeout = 30 * 60 * 1000; // 30 min for large files up to 2GB
+
+    // Upload progress — only covers upload (~0-60%); conversion is server-side
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) {
+        onProgress(Math.round((e.loaded / e.total) * 60));
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const data = JSON.parse(xhr.responseText);
+          onProgress(100);
+          resolve(data);
+        } catch {
+          reject(new Error("Invalid server response."));
+        }
+      } else {
+        let msg = `Upload failed (${xhr.status})`;
+        try {
+          const err = JSON.parse(xhr.responseText);
+          msg = err.detail || err.error || msg;
+        } catch { /* keep default */ }
+        reject(new Error(msg));
+      }
+    };
+
+    xhr.onerror   = () => reject(new Error("Network error during upload. Please try again."));
+    xhr.ontimeout = () => reject(new Error("Upload timed out. The file may be too large."));
+
+    const form = new FormData();
+    form.append("file", file);
+    xhr.send(form);
+  });
 }
 
 // ─── Health check ─────────────────────────────────────────────────────────────

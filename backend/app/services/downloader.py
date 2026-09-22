@@ -25,7 +25,12 @@ from typing import Tuple, Optional
 
 import yt_dlp
 
-from app.config.settings import DOWNLOADS_DIR, COOKIES_FILE, INSTAGRAM_COOKIES
+from app.config.settings import (
+    DOWNLOADS_DIR,
+    COOKIES_FILE,
+    INSTAGRAM_COOKIES,
+    MAX_VIDEO_DURATION_SECONDS,
+)
 from app.models.schemas import VideoQuality, DownloadFormat
 from app.utils.helpers import safe_filename, safe_delete_file, is_valid_url
 
@@ -224,6 +229,14 @@ def _run_download(
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info  = ydl.extract_info(url, download=True)
         title = info.get("title", "download")
+
+    # Reject videos longer than the 2-hour limit
+    duration = info.get("duration")
+    if duration is not None and duration > MAX_VIDEO_DURATION_SECONDS:
+        limit_min = MAX_VIDEO_DURATION_SECONDS // 60
+        raise ValueError(
+            f"This video is longer than the {limit_min}-minute limit and cannot be downloaded."
+        )
 
     file_path = _find_file(download_id, expect_ext)
     if not file_path:
