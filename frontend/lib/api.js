@@ -244,10 +244,11 @@ export function uploadVideoToAudio(file, onProgress = () => {}) {
  *
  * @param {File}     file       File selected by the user
  * @param {function} onProgress Called with 0→100 values during upload
- * @param {string}   strength   "standard" or "strong"
+ * @param {string}   mode       "music" (keep music) or "voice" (RNNoise vocal focus)
+ * @param {boolean}  boost      Apply loudness normalization to the output
  */
-export function denoiseUpload(file, onProgress = () => {}, strength = "standard") {
-  return _uploadFile("/api/noise/upload", file, onProgress, { strength });
+export function denoiseUpload(file, onProgress = () => {}, mode = "music", boost = false) {
+  return _uploadFile("/api/noise/upload", file, onProgress, { mode, boost });
 }
 
 /**

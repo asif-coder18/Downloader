@@ -22,7 +22,7 @@ from app.config.settings import TEMP_DIR, MAX_FILE_SIZE_BYTES, MAX_VIDEO_DURATIO
 from app.models.schemas import NoiseRemoverUrlRequest, DownloadFormat
 from app.services.converter import probe_duration
 from app.services.downloader import download_media, FFMPEG_PATH
-from app.services.denoiser import denoise_audio
+from app.services.denoiser import denoise_audio, DEFAULT_MODE
 from app.routes.download import _store_token
 from app.utils.helpers import safe_delete_file, safe_filename
 
@@ -70,7 +70,11 @@ async def noise_url_endpoint(request: NoiseRemoverUrlRequest):
 
         # 2. Denoise it
         mp3_path = await asyncio.to_thread(
-            denoise_audio, raw_path, str(TEMP_DIR), request.strength
+            denoise_audio,
+            raw_path,
+            str(TEMP_DIR),
+            request.mode,
+            request.boost,
         )
 
         # 3. Build a clean output filename from the downloaded video title
@@ -107,7 +111,8 @@ async def noise_url_endpoint(request: NoiseRemoverUrlRequest):
 @router.post("/noise/upload", summary="Remove noise from an uploaded file")
 async def noise_upload_endpoint(
     file: UploadFile = File(...),
-    strength: str = Form("standard"),
+    mode: str = Form(DEFAULT_MODE),
+    boost: bool = Form(False),
 ):
     """
     Step 1 of the two-step noise-removal flow for uploaded files.
@@ -115,11 +120,13 @@ async def noise_upload_endpoint(
     Accepts any video or audio file, removes background noise with FFmpeg,
     saves the cleaned MP3 on the server, and returns a one-time download token.
 
-    Request:  multipart/form-data with field "file" (+ optional "strength":
-              "standard" | "strong")
+    Request:  multipart/form-data with fields:
+              - "file"   (any video or audio)
+              - "mode"   ("music" | "voice")   — optional
+              - "boost"  (true/false)          — optional, loudness normalize
     Response: { "token": "abc123", "filename": "audio_clean.mp3", "size": 12345 }
     """
-    strength = (strength or "standard").lower().strip()
+    mode = (mode or DEFAULT_MODE).lower().strip()
     original_name = file.filename or "audio.mp3"
     ext = Path(original_name).suffix.lower() or ".mp3"
 
@@ -169,7 +176,7 @@ async def noise_upload_endpoint(
 
         logger.info(f"📤 Noise-remover upload received: {original_name} ({size:,} bytes)")
 
-        mp3_path = await asyncio.to_thread(denoise_audio, str(temp_input), str(TEMP_DIR), strength)
+        mp3_path = await asyncio.to_thread(denoise_audio, str(temp_input), str(TEMP_DIR), mode, boost)
 
         clean_name = safe_filename(Path(original_name).stem) or "audio"
         final_name = f"{clean_name}_clean.mp3"

@@ -89,10 +89,11 @@ class DownloadRequest(BaseModel):
 class NoiseRemoverUrlRequest(BaseModel):
     """
     POST /noise/url
-    Frontend sends: { "url": "https://...", "strength": "strong" }
+    Frontend sends: { "url": "https://...", "mode": "voice", "boost": true }
     """
     url: str
-    strength: str = "standard"  # "standard" | "strong"
+    mode: str = "music"    # "music" | "voice"
+    boost: bool = False
 
     @field_validator("url")
     @classmethod

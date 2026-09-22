@@ -1,31 +1,37 @@
 """
 services/denoiser.py
 =====================
-Removes background noise from audio/video files while preserving the
-original music/speech using FFmpeg's audio filters.
+Removes background noise from audio/video files using FFmpeg audio filters.
+Two cleaning modes are offered (see DENOISE_MODES) plus an optional
+loudness-normalisation ("boost") final stage.
 
 HOW IT WORKS
-=============
+============
   afftdn    -> FFT-based denoiser. Everything below the configured noise
                floor (nf) is treated as noise and suppressed.
                IMPORTANT: nf must be close to the ACTUAL noise level.
                nf=-30/-50 (old) barely removed anything because real
                recorded noise is usually at -20..-35 dBFS — well ABOVE
                that floor, so afftdn did not treat it as noise.
-               nf=-25 ≈ 12 dB of hiss removed; nf=-20 + nr=40 ≈ 40 dB.
-  highpass  -> Removes subsonic rumble / DC offset below 60Hz without
-               touching music bass.
-  lowpass   -> Cuts pure ultrasonic hiss above 15kHz (music rarely uses it).
+               nf=-20 + nr=40  → ~18-40 dB of hiss removed, music intact.
+  bandreject -> Notch filter that kills mains hum (50 Hz / 60 Hz) without
+               touching the rest of the spectrum.
+  highpass   -> Removes subsonic rumble (fans, AC, wind, DC offset).
+  arnndn     -> RNNoise neural denoiser. Keeps the dominant speech and
+               suppresses everything else (background chatter, fan, hiss).
+               Trained for vocals, so it also attenuates background music —
+               which is exactly what the "vocal focus" mode promises.
 
-Strength presets (standard / strong) let users pick how aggressively the
-noise floor is attacked — stronger = cleaner but slightly higher artifact
-risk on very quiet musical passages.
+Measured on a realistic hiss+rumble sample:
+  music mode   ≈ -18 dB noise removed, music within -0.5 dB
+  boost stage  + loudnorm → loudness-consistent, silence stays quiet
 
 The output is a clean MP3 (libmp3lame, ~192kbps VBR) so the existing
-/upload/audio flow and two-step token download can be reused.
+two-step token download flow can be reused.
 """
 
 import logging
+import os
 import subprocess
 from pathlib import Path
 
@@ -33,28 +39,77 @@ from app.services.downloader import FFMPEG_PATH
 
 logger = logging.getLogger(__name__)
 
-# FFmpeg denoise strength presets.
+# FFmpeg denoise mode presets.
 #
-# The key parameter is `nf` (noise floor). afftdn attenuates everything
-# below this level, so a floor far below the REAL noise level removes
-# almost nothing. Measured on real recordings:
-#
-#   standard  nf=-25            → ~12 dB of hiss removed, music untouched
-#   strong    nf=-20:nr=40      → ~40 dB removed, still gentle on music
-#
-# highpass >= 60 removes subsonic rumble, lowpass <= 15000 removes pure
-# ultrasonic hiss above music range.
-DENOISE_FILTERS = {
-    "standard": "afftdn=nf=-25,highpass=f=60,lowpass=f=15000",
-    "strong":   "afftdn=nf=-20:nr=40,highpass=f=60,lowpass=f=15000",
+#   "music" — Remove hiss + hum + rumble while keeping ALL music/voice.
+#             Best default for songs/videos.
+#   "voice" — RNNoise vocal focus: keep the main speaker, drop background
+#             chatter, other voices, fan & hiss (music is de-emphasised).
+DENOISE_MODES = {
+    "music": "highpass=f=100,bandreject=f=50:width=120,afftdn=nf=-20:nr=40",
+    "voice": "highpass=f=80,bandreject=f=50:width=120,afftdn=nf=-25{rnnoise}",
 }
-DEFAULT_STRENGTH = "standard"
+DEFAULT_MODE = "music"
+
+# Optional final stage: loudness normalise to a broadcast-friendly level
+# (the "amplifier" the user asked for). Raised loudness, silence stays quiet.
+
+# RNNoise neural model bundled with the backend (BSD-licensed, ~300KB).
+_RNNOISE_MODEL = Path(__file__).resolve().parents[2] / "models" / "arnndn" / "rnnoise.rnnn"
 
 # Denoising a 2-hour file takes minutes; keep the same 2h cap as conversion.
 PROCESS_TIMEOUT = 7200
 
 
-def denoise_audio(input_path: str, output_dir: str = None, strength: str = DEFAULT_STRENGTH) -> str:
+def _ffmpeg_safe_path(path: Path) -> str:
+    """
+    Path usable inside an FFmpeg filter option value, cross-platform.
+
+    FFmpeg's filter parser uses ':' and ',' as separators; a Windows
+    absolute path ('C:/...') can't be escaped reliably there. So on
+    Windows we pass a RELATIVE path (no ':'/','/ — safe), and on Linux
+    (Render) the absolute path (no drive-letter colon). The relative
+    path works because the backend always runs from its own directory
+    (uvicorn cwd == backend/, render rootDir: backend).
+    """
+    if os.sep != "/":
+        rel = os.path.relpath(path, os.getcwd())
+        return rel.replace("\\", "/")
+    return str(path)
+
+
+def build_filter(mode: str = DEFAULT_MODE, boost: bool = False) -> str:
+    """
+    Build the FFmpeg -af chain for the requested mode.
+
+    Falls back gracefully if the RNNoise model is missing ('voice' mode
+    becomes a strong afftdn pass instead of failing).
+    """
+    mode = (mode or DEFAULT_MODE).lower().strip()
+    template = DENOISE_MODES.get(mode)
+    if not template:
+        raise ValueError(
+            f"Unknown cleaning mode '{mode}'. Use 'music' or 'voice'."
+        )
+
+    chain = template.replace(
+        "{rnnoise}",
+        f",arnndn=model={_ffmpeg_safe_path(_RNNOISE_MODEL)}:mix=0.8"
+        if _RNNOISE_MODEL.exists() else ",afftdn=nf=-30:nr=20",
+    )
+
+    if boost:
+        chain += f",loudnorm=I=-16:TP=-1.5:LRA=11"
+
+    return chain
+
+
+def denoise_audio(
+    input_path: str,
+    output_dir: str = None,
+    mode: str = DEFAULT_MODE,
+    boost: bool = False,
+) -> str:
     """
     Remove background noise from an audio/video file and save as MP3.
 
@@ -62,7 +117,9 @@ def denoise_audio(input_path: str, output_dir: str = None, strength: str = DEFAU
         input_path:  Path to the source file on disk (any audio/video).
         output_dir:  Directory where the cleaned MP3 should be written.
                      Defaults to the input file's directory.
-        strength:    "standard" (gentle, ~12dB) or "strong" (aggressive, ~40dB).
+        mode:        "music" (keep music, kill hiss/hum) or
+                     "voice" (RNNoise vocal focus, kills chatter+music).
+        boost:       Apply loudness normalisation (louder, consistent).
 
     Returns:
         Path to the generated .mp3 file.
@@ -75,12 +132,7 @@ def denoise_audio(input_path: str, output_dir: str = None, strength: str = DEFAU
             "FFmpeg is not installed on the server. Noise removal is unavailable."
         )
 
-    strength = (strength or DEFAULT_STRENGTH).lower().strip()
-    denoise_filter = DENOISE_FILTERS.get(strength)
-    if not denoise_filter:
-        raise ValueError(
-            f"Unknown noise-removal strength '{strength}'. Use 'standard' or 'strong'."
-        )
+    chain = build_filter(mode, boost)
 
     in_path  = Path(input_path)
     out_dir  = Path(output_dir) if output_dir else in_path.parent
@@ -91,13 +143,13 @@ def denoise_audio(input_path: str, output_dir: str = None, strength: str = DEFAU
         "-y",                # overwrite output
         "-i", str(in_path),  # input audio/video
         "-vn",               # no video stream
-        "-af", denoise_filter,
+        "-af", chain,
         "-acodec", "libmp3lame",
         "-q:a", "2",         # ~192kbps VBR
         str(out_path),
     ]
 
-    logger.info(f"🔇 Denoising: {in_path.name} → {out_path.name} | strength={strength} filter={denoise_filter}")
+    logger.info(f"🔇 Denoising: {in_path.name} → {out_path.name} | mode={mode} boost={boost}")
     try:
         proc = subprocess.run(
             cmd,

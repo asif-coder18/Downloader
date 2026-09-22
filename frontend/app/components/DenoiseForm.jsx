@@ -18,7 +18,8 @@ const MIME_ACCEPT = "video/*,audio/*,.mkv,.mov,.avi,.webm,.flv,.wmv,.m4v,.mpg,.m
 
 export default function DenoiseForm({ onToast }) {
   const [file,        setFile]        = useState(null);
-  const [strength,    setStrength]    = useState("standard");
+  const [mode,        setMode]        = useState("music");
+  const [boost,       setBoost]       = useState(true);
   const [dragOver,    setDragOver]    = useState(false);
   const [state,       setState]       = useState(STEP_STATE.IDLE);
   const [progress,    setProgress]    = useState(0);
@@ -80,7 +81,7 @@ export default function DenoiseForm({ onToast }) {
     setLabel(`Uploading & removing noise from ${file.name}…`);
 
     try {
-      const data = await denoiseUpload(file, (p) => setProgress(p), strength);
+      const data = await denoiseUpload(file, (p) => setProgress(p), mode, boost);
       setLabel("Download starting…");
       triggerAnchorDownload(data.token, data.filename);
 
@@ -180,21 +181,21 @@ export default function DenoiseForm({ onToast }) {
         </AnimatePresence>
       </motion.div>
 
-      {/* Strength selector */}
-      <div className="flex items-center justify-center gap-3">
-        <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">Noise reduction:</span>
+      {/* Mode + boost options */}
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
         <div className="inline-flex rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 p-1">
           {[
-            { key: "standard", label: "Standard" },
-            { key: "strong",   label: "Strong" },
-          ].map(({ key, label }) => (
+            { key: "music", label: "🎵 Keep music",     desc: "Removes hiss & hum, keeps music" },
+            { key: "voice", label: "🎙 Vocal focus",    desc: "Kills background chatter, keeps the main voice" },
+          ].map(({ key, label, desc }) => (
             <button
               key={key}
               type="button"
               disabled={busy}
-              onClick={() => setStrength(key)}
+              onClick={() => setMode(key)}
+              title={desc}
               className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                strength === key
+                mode === key
                   ? "bg-blue-600 text-white shadow-sm"
                   : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
               } ${busy ? "opacity-60 cursor-not-allowed" : ""}`}
@@ -203,7 +204,27 @@ export default function DenoiseForm({ onToast }) {
             </button>
           ))}
         </div>
+
+        <label
+          className={`inline-flex items-center gap-2 cursor-pointer select-none text-sm text-slate-500 dark:text-slate-400 ${
+            busy ? "opacity-60 cursor-not-allowed" : ""
+          }`}
+        >
+          <input
+            type="checkbox"
+            checked={boost}
+            disabled={busy}
+            onChange={(e) => setBoost(e.target.checked)}
+            className="accent-blue-600 w-4 h-4"
+          />
+          🔊 Boost volume
+        </label>
       </div>
+      <p className="text-center text-xs text-slate-400 dark:text-slate-500 -mt-2">
+        {mode === "voice"
+          ? "Vocal focus: background people, fan & hiss removed — music becomes quieter."
+          : "Keep music: background noise removed, the song plays normally."}
+      </p>
 
       {/* Error */}
       <AnimatePresence>
