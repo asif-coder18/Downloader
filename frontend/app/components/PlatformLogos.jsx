@@ -2,7 +2,7 @@
 
 /**
  * PlatformLogos.jsx
- * High quality SVG logos for TikTok, Instagram, and Facebook.
+ * High quality, crystal-clear SVG logos for TikTok, Instagram, and Facebook.
  */
 
 export function TikTokLogo({ className = "w-5 h-5" }) {
@@ -15,27 +15,31 @@ export function TikTokLogo({ className = "w-5 h-5" }) {
 
 export function InstagramLogo({ className = "w-5 h-5" }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none">
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient id="ig-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+        <linearGradient id="ig-grad-icon" x1="0%" y1="100%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="#fdf497" />
-          <stop offset="5%" stopColor="#fdf497" />
+          <stop offset="15%" stopColor="#fdf497" />
           <stop offset="45%" stopColor="#fd5949" />
           <stop offset="60%" stopColor="#d6249f" />
           <stop offset="100%" stopColor="#285AEB" />
         </linearGradient>
       </defs>
-      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="url(#ig-grad)" strokeWidth="2.2" />
-      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" stroke="url(#ig-grad)" strokeWidth="2.2" />
-      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke="url(#ig-grad)" strokeWidth="2.8" strokeLinecap="round" />
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="url(#ig-grad-icon)" strokeWidth="2.2" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" stroke="url(#ig-grad-icon)" strokeWidth="2.2" />
+      <circle cx="17.5" cy="6.5" r="1.4" fill="url(#ig-grad-icon)" />
     </svg>
   );
 }
 
 export function FacebookLogo({ className = "w-5 h-5" }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="#1877F2">
-      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="12" fill="#1877F2" />
+      <path
+        d="M15.143 24v-9.293h3.119l.467-3.62h-3.586V8.776c0-1.048.291-1.762 1.794-1.762l1.917-.001V3.766C18.522 3.722 17.382 3.621 16.05 3.621c-2.781 0-4.685 1.698-4.685 4.815v2.691H8.243v3.62h3.122V24h3.778z"
+        fill="#FFFFFF"
+      />
     </svg>
   );
 }
@@ -47,3 +51,4 @@ export function PlatformLogo({ name, className = "w-5 h-5" }) {
   if (norm.includes("facebook") || norm.includes("fb")) return <FacebookLogo className={className} />;
   return null;
 }
+
