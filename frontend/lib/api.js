@@ -17,16 +17,22 @@
  * download after the first. The anchor-tag approach below is fully reliable.
  */
 
-const rawApiBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const PRODUCTION_API_URL = "https://downloaderbd.onrender.com";
+const rawApiBase = process.env.NEXT_PUBLIC_API_URL || PRODUCTION_API_URL;
 
-// On Windows, 'localhost' in browsers resolves to IPv6 [::1].
-// If the backend runs on 127.0.0.1, requests to localhost can fail immediately.
-// If on browser and using localhost, automatically normalize to 127.0.0.1.
+// Local vs Production automatic resolution:
+// - On localhost/127.0.0.1 (local dev): use local FastAPI server (http://127.0.0.1:8000)
+// - On live domain (asifdownloader.pro.bd): use live Render server (https://downloaderbd.onrender.com)
 function resolveApiBase() {
-  if (typeof window !== "undefined" && rawApiBase.includes("localhost")) {
-    return rawApiBase.replace("localhost", "127.0.0.1");
+  if (typeof window !== "undefined") {
+    const isLocal =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+    if (isLocal) {
+      return "http://127.0.0.1:8000";
+    }
   }
-  return rawApiBase;
+  return rawApiBase || PRODUCTION_API_URL;
 }
 
 const API_BASE = resolveApiBase();
