@@ -17,7 +17,19 @@
  * download after the first. The anchor-tag approach below is fully reliable.
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const rawApiBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+
+// On Windows, 'localhost' in browsers resolves to IPv6 [::1].
+// If the backend runs on 127.0.0.1, requests to localhost can fail immediately.
+// If on browser and using localhost, automatically normalize to 127.0.0.1.
+function resolveApiBase() {
+  if (typeof window !== "undefined" && rawApiBase.includes("localhost")) {
+    return rawApiBase.replace("localhost", "127.0.0.1");
+  }
+  return rawApiBase;
+}
+
+const API_BASE = resolveApiBase();
 
 export { API_BASE };
 

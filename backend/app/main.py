@@ -130,11 +130,11 @@ app = FastAPI(
 # It tells the browser: "Yes, requests from these origins are allowed"
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    **({"allow_origin_regex": ALLOWED_ORIGIN_REGEX} if ALLOWED_ORIGIN_REGEX else {}),
+    allow_origins=ALLOWED_ORIGINS if ALLOWED_ORIGINS else ["*"],
+    allow_origin_regex=ALLOWED_ORIGIN_REGEX or r"^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$",
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization"],
+    allow_methods=["*"],
+    allow_headers=["*"],
     expose_headers=[
         "Content-Disposition",
         "Content-Length",
