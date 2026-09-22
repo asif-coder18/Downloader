@@ -218,12 +218,12 @@ def _run_download(
         # Clean up the file that was already written to disk
         partial = DOWNLOADS_DIR / f"{download_id}.{expect_ext}"
         if partial.exists():
-            partial.unlink(ignore_errors=True)
+            partial.unlink(missing_ok=True)
         else:
             # Try any extension variant
             for f in DOWNLOADS_DIR.iterdir():
                 if f.stem == download_id:
-                    f.unlink(ignore_errors=True)
+                    f.unlink(missing_ok=True)
                     break
         raise ValueError(
             f"This video is longer than the {limit_min}-minute limit and cannot be downloaded."
