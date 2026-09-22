@@ -294,7 +294,7 @@ function _uploadFile(endpoint, file, onProgress = () => {}, extraFields = {}) {
       }
     };
 
-    xhr.onerror   = () => reject(new Error("Network error during upload. Please try again."));
+    xhr.onerror   = () => reject(new Error("Network error: Could not reach backend server. Please make sure the backend is running."));
     xhr.ontimeout = () => reject(new Error("Upload timed out. The file may be too large."));
 
     xhr.send(form);

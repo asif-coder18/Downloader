@@ -32,6 +32,12 @@ import sys
 import os
 from contextlib import asynccontextmanager
 
+# Configure stdout/stderr for utf-8 on Windows so emoji logs never crash
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -49,15 +55,29 @@ from app.routes.download import router as download_router
 from app.routes.noise import router as noise_router
 from app.utils.helpers import cleanup_old_files
 
+class SafeStreamHandler(logging.StreamHandler):
+    """Prevents UnicodeEncodeError when logging emojis on Windows consoles."""
+    def emit(self, record):
+        try:
+            msg = self.format(record)
+            stream = self.stream
+            try:
+                stream.write(msg + self.terminator)
+            except UnicodeEncodeError:
+                encoding = getattr(stream, "encoding", "utf-8") or "utf-8"
+                safe_msg = msg.encode(encoding, errors="replace").decode(encoding)
+                stream.write(safe_msg + self.terminator)
+            self.flush()
+        except Exception:
+            self.handleError(record)
+
 # ── Logging Setup ──────────────────────────────────────────────────────────────
-# Configure Python's built-in logging system
-# This makes log messages appear in the terminal with timestamps
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
     handlers=[
-        logging.StreamHandler(sys.stdout),  # Print to terminal
+        SafeStreamHandler(sys.stdout),
     ]
 )
 logger = logging.getLogger(__name__)
