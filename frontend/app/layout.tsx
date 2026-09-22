@@ -1,13 +1,3 @@
-/**
- * app/layout.tsx
- * ---------------
- * Root layout — wraps every page with:
- * - Font setup (Geist)
- * - Global CSS
- * - Navbar + Footer (shared across all pages)
- * - AnimatedBackground (decorative)
- */
-
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -27,32 +17,28 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Downloader – Free YouTube TikTok Instagram Facebook Video Downloader",
+  title: "Downloader – Free TikTok Instagram Facebook Video Downloader",
   description:
-    "Download videos from YouTube, TikTok, Instagram, and Facebook for FREE. No signup, no limits, no watermark. The only free downloader that supports all 4 platforms at once.",
+    "Download videos from TikTok, Instagram, and Facebook for FREE. No signup, no limits, no watermark.",
   keywords: [
     "free video downloader",
-    "youtube downloader free",
     "tiktok downloader no watermark",
     "instagram reels downloader",
     "facebook video downloader",
     "social media downloader",
-    "download youtube video free",
     "tiktok video download",
     "instagram video download free",
-    "all in one video downloader",
     "ভিডিও ডাউনলোড",
-    "youtube video download",
   ],
   openGraph: {
-    title: "Downloader – Free Downloader for YouTube, TikTok, Instagram & Facebook",
-    description: "The only 100% free tool to download from all 4 platforms — no signup, no watermark, no limits.",
+    title: "Downloader – Free Downloader for TikTok, Instagram & Facebook",
+    description: "The only 100% free tool to download from TikTok, Instagram & Facebook — no signup, no watermark, no limits.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Downloader – Free Video Downloader",
-    description: "Download from YouTube, TikTok, Instagram & Facebook — free, fast, no limits.",
+    description: "Download from TikTok, Instagram & Facebook — free, fast, no limits.",
   },
   robots: {
     index: true,

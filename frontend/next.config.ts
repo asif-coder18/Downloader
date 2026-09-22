@@ -4,11 +4,6 @@ const nextConfig: NextConfig = {
   images: {
     // Allow thumbnails from all common social media CDNs
     remotePatterns: [
-      // YouTube / Google
-      { protocol: "https", hostname: "**.ytimg.com" },
-      { protocol: "https", hostname: "**.ggpht.com" },
-      { protocol: "https", hostname: "i.ytimg.com" },
-      { protocol: "https", hostname: "img.youtube.com" },
       // Instagram / Facebook
       { protocol: "https", hostname: "**.cdninstagram.com" },
       { protocol: "https", hostname: "**.fbcdn.net" },

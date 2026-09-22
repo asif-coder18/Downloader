@@ -1,55 +1,265 @@
-import HeroSection from "./components/HeroSection";
-import PlatformGrid from "./components/PlatformGrid";
-import FeaturesSection from "./components/FeaturesSection";
-import Link from "next/link";
-import { Download, ArrowRight, Sparkles } from "lucide-react";
+"use client";
+
+/**
+ * app/page.tsx
+ * ============
+ * Single-page downloader — connected to the real FastAPI backend.
+ *
+ * DOWNLOAD FLOW (two-step):
+ *   1. User pastes URL → POST /api/analyze → show media card
+ *   2. User clicks download → POST /api/download/video → get token
+ *   3. Browser navigates to /api/file/{token} → file saves to Downloads
+ */
+
+import { useState, useCallback, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { AlertTriangle, CheckCircle2, Zap } from "lucide-react";
+import UrlInputForm from "@/app/components/UrlInputForm";
+import MediaPreviewCard from "@/app/components/MediaPreviewCard";
+import SkeletonCard from "@/app/components/SkeletonCard";
+import ToastContainer from "@/app/components/ToastContainer";
+import { analyzeUrl, downloadVideo, downloadAudio, checkBackendHealth } from "@/lib/api";
+import { useToast } from "@/hooks/useToast";
+
+// ── Download state machine ────────────────────────────────────────────────────
+const DL_STATE = {
+  IDLE:      "idle",
+  PREPARING: "preparing",  // the server is preparing the download
+  DONE:      "done",
+  ERROR:     "error",
+};
+
+interface MediaInfo {
+  title: string;
+  platform: string;
+  thumbnail?: string | null;
+  duration?: string | null;
+  uploader?: string | null;
+  view_count?: string | null;
+  formats?: string[];
+  qualities?: string[];
+  fileSize?: Record<string, string>;
+  _url: string;
+}
 
 export default function HomePage() {
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [mediaInfo,   setMediaInfo]   = useState<MediaInfo | null>(null);
+  const [analyzeErr,  setAnalyzeErr]  = useState("");
+
+  const [dlState,     setDlState]     = useState(DL_STATE.IDLE);
+  const [dlProgress,  setDlProgress]  = useState(0);
+  const [dlLabel,     setDlLabel]     = useState("");
+  const [activeFormat, setActiveFormat] = useState<string | null>(null);
+
+  // ── Use a ref to track downloading state to avoid stale closures ──────────
+  const dlStateRef = useRef(DL_STATE.IDLE);
+  const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const { toasts, addToast, removeToast } = useToast();
+
+  // ── Wake up backend on page load ──────────────────────────────────────────
+  useEffect(() => {
+    checkBackendHealth().catch(() => {});
+  }, []);
+
+  // ── Stable reset function — safe to call from any async context ───────────
+  const resetDownloadState = useCallback(() => {
+    if (resetTimerRef.current) {
+      clearTimeout(resetTimerRef.current);
+      resetTimerRef.current = null;
+    }
+    dlStateRef.current = DL_STATE.IDLE;
+    setDlState(DL_STATE.IDLE);
+    setDlProgress(0);
+    setDlLabel("");
+    setActiveFormat(null);
+  }, []);
+
+  // ── Analyze ────────────────────────────────────────────────────────────────
+  const handleAnalyze = useCallback(async (url: string) => {
+    resetDownloadState();
+    setIsAnalyzing(true);
+    setMediaInfo(null);
+    setAnalyzeErr("");
+
+    try {
+      const data = await analyzeUrl(url) as MediaInfo;
+      setMediaInfo({ ...data, _url: url });
+      addToast({ type: "success", message: `Found: ${data.title.slice(0, 55)}` });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Could not fetch media info.";
+      setAnalyzeErr(msg);
+      addToast({ type: "error", message: msg });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  }, [addToast, resetDownloadState]);
+
+  // ── Download ───────────────────────────────────────────────────────────────
+  const handleDownload = useCallback(async (format: string, quality: string) => {
+    if (!mediaInfo || dlStateRef.current === DL_STATE.PREPARING) return;
+
+    if (resetTimerRef.current) {
+      clearTimeout(resetTimerRef.current);
+      resetTimerRef.current = null;
+    }
+
+    dlStateRef.current = DL_STATE.PREPARING;
+    setDlState(DL_STATE.PREPARING);
+    setDlProgress(0);
+    setDlLabel(`Preparing ${format} · ${quality}…`);
+    setActiveFormat(format);
+
+    // Fake progress ticker — the server doesn't stream progress over HTTP,
+    // so we animate slowly to 85% to show activity, then jump to 100 on success.
+    let fakeProgress = 10;
+    const ticker = setInterval(() => {
+      fakeProgress = Math.min(fakeProgress + Math.random() * 3, 85);
+      setDlProgress(Math.floor(fakeProgress));
+    }, 800);
+
+    try {
+      const onProgress = (p: number) => setDlProgress(p);
+
+      const normalizedQuality = quality.toLowerCase().replace(/^best$/i, "best");
+
+      if (format === "Audio") {
+        await downloadAudio(mediaInfo._url, onProgress);
+      } else {
+        await downloadVideo(mediaInfo._url, normalizedQuality, onProgress);
+      }
+
+      clearInterval(ticker);
+
+      dlStateRef.current = DL_STATE.DONE;
+      setDlState(DL_STATE.DONE);
+      setDlProgress(100);
+      setDlLabel("Download completed and saved successfully!");
+      setActiveFormat(null);
+
+      addToast({
+        type: "success",
+        message: `✅ ${format} download complete!`,
+        duration: 5000,
+      });
+
+      // Auto-reset after 4 seconds so the next download can start
+      resetTimerRef.current = setTimeout(() => {
+        resetDownloadState();
+      }, 4000);
+
+    } catch (err) {
+      clearInterval(ticker);
+
+      const msg = err instanceof Error ? err.message : "Download failed. Please try again.";
+
+      dlStateRef.current = DL_STATE.ERROR;
+      setDlState(DL_STATE.ERROR);
+      setDlProgress(0);
+      setDlLabel(msg);
+      setActiveFormat(null);
+
+      addToast({ type: "error", message: msg, duration: 8000 });
+
+      // Auto-reset after 5 seconds so the user can retry immediately
+      resetTimerRef.current = setTimeout(() => {
+        resetDownloadState();
+      }, 5000);
+    }
+  }, [mediaInfo, addToast, resetDownloadState]);
+
+  const isDownloading = dlState === DL_STATE.PREPARING;
+
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      <HeroSection />
-      <PlatformGrid />
-      <FeaturesSection />
+    <>
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
 
-      {/* ── CTA Banner ── */}
-      <section className="py-20">
-        <div className="relative rounded-3xl overflow-hidden p-[1px] bg-gradient-to-r from-violet-500/50 via-fuchsia-500/50 to-pink-500/50">
-          <div className="relative rounded-3xl bg-white/70 dark:bg-[#0a0614]/90 backdrop-blur-xl p-10 sm:p-14 text-center overflow-hidden">
-            {/* Background glow */}
-            <div className="absolute inset-0 bg-gradient-to-br from-violet-600/8 via-fuchsia-600/5 to-pink-600/8" />
-            <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full bg-violet-500/15 blur-3xl" />
-
-            <div className="relative">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-400/20 text-violet-600 dark:text-violet-300 text-xs font-semibold mb-6">
-                <Sparkles className="w-3 h-3" />
-                100% Free · No Sign-up Required
-              </div>
-
-              <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white mb-4 tracking-tight">
-                Ready to download?
-              </h2>
-              <p className="text-slate-500 dark:text-slate-400 mb-10 max-w-md mx-auto text-lg">
-                Paste your first link and get your media in seconds.
-              </p>
-
-              <Link
-                href="/downloader"
-                className="inline-flex items-center gap-2 px-10 py-4 rounded-2xl
-                  bg-gradient-to-r from-violet-600 to-fuchsia-600
-                  hover:from-violet-500 hover:to-fuchsia-500
-                  text-white font-bold text-base
-                  shadow-xl shadow-violet-500/35 hover:shadow-violet-500/55
-                  transition-all duration-300 hover:scale-[1.04] active:scale-[0.97]
-                  glow-btn"
-              >
-                <Download className="w-5 h-5" />
-                Try it now — it&apos;s free
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
+        {/* ── Header ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-10"
+        >
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-400/20 text-violet-600 dark:text-violet-300 text-xs font-semibold mb-5">
+            <Zap className="w-3 h-3" />
+            Free · Fast · No Limits
           </div>
-        </div>
-      </section>
-    </div>
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white mb-3 tracking-tight">
+            Download
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400 text-lg">
+            Paste a link from TikTok, Instagram or Facebook to get started.
+          </p>
+        </motion.div>
+
+        {/* ── URL Input ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-6"
+        >
+          <UrlInputForm onSubmit={handleAnalyze} isLoading={isAnalyzing} />
+        </motion.div>
+
+        {/* ── Analyze error ── */}
+        <AnimatePresence>
+          {analyzeErr && (
+            <motion.div
+              key="analyze-err"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-3"
+            >
+              <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+              <p className="text-red-300 text-sm font-medium">{analyzeErr}</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Download done banner ── */}
+        <AnimatePresence>
+          {dlState === DL_STATE.DONE && (
+            <motion.div
+              key="dl-done"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="mb-4 p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center gap-2"
+            >
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+              <p className="text-emerald-300 text-sm font-medium">
+                Download complete! You can download another video now.
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Skeleton ── */}
+        <AnimatePresence>
+          {isAnalyzing && <SkeletonCard key="skeleton" />}
+        </AnimatePresence>
+
+        {/* ── Media card ── */}
+        <AnimatePresence>
+          {mediaInfo && !isAnalyzing && (
+            <MediaPreviewCard
+              key="media-card"
+              media={mediaInfo}
+              onDownload={handleDownload}
+              isDownloading={isDownloading}
+              downloadProgress={dlProgress}
+              downloadLabel={dlLabel}
+              downloadState={dlState}
+              activeFormat={activeFormat}
+            />
+          )}
+        </AnimatePresence>
+      </div>
+
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
+    </>
   );
 }

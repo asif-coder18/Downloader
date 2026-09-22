@@ -29,7 +29,7 @@ export default function UrlInputForm({ onSubmit, isLoading }) {
     e.preventDefault();
     if (!url.trim()) { setError("Please enter a URL."); return; }
     if (!validateUrl(url.trim())) {
-      setError("Doesn't look like a valid URL. Try something like https://youtube.com/watch?v=...");
+      setError("Doesn't look like a valid URL. Try something like https://www.instagram.com/reel/...");
       return;
     }
     setError("");
@@ -66,7 +66,7 @@ export default function UrlInputForm({ onSubmit, isLoading }) {
           onChange={(e) => { setUrl(e.target.value); setError(""); }}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          placeholder="Paste YouTube, TikTok, Instagram or Facebook link…"
+          placeholder="Paste TikTok, Instagram or Facebook link…"
           className="w-full pl-12 pr-36 py-4 bg-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none rounded-2xl"
           disabled={isLoading}
           aria-label="Social media URL"

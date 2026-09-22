@@ -35,6 +35,20 @@ function DownloadBtn({ icon: Icon, label, colorClass, onClick, disabled, loading
   );
 }
 
+/**
+ * @typedef {object} MediaPreviewCardProps
+ * @property {object} media
+ * @property {(format: string, quality: string) => void} [onDownload]
+ * @property {boolean} [isDownloading]
+ * @property {number} [downloadProgress]
+ * @property {string} [downloadLabel]
+ * @property {string} [downloadState]
+ * @property {string|null} [activeFormat]
+ */
+
+/**
+ * @param {MediaPreviewCardProps} props
+ */
 export default function MediaPreviewCard({
   media,
   onDownload,

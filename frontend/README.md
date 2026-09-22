@@ -20,7 +20,6 @@ A beautiful, modern, frontend-only social media downloader built with **Next.js*
 
 | Platform  | Formats                    |
 |-----------|----------------------------|
-| YouTube   | Video, Shorts, Audio, MP3  |
 | TikTok    | Video, Reel, MP3           |
 | Instagram | Reel, Video, Audio         |
 | Facebook  | Video, Audio, MP3          |

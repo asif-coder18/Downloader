@@ -21,7 +21,6 @@ logger = logging.getLogger(__name__)
 # Map of URL patterns → platform names
 # re.compile() pre-compiles the regex for speed
 PLATFORM_PATTERNS = [
-    (re.compile(r"youtube\.com|youtu\.be",       re.I), "YouTube"),
     (re.compile(r"facebook\.com|fb\.watch",      re.I), "Facebook"),
     (re.compile(r"instagram\.com",               re.I), "Instagram"),
     (re.compile(r"tiktok\.com",                  re.I), "TikTok"),
@@ -37,7 +36,7 @@ def detect_platform(url: str) -> str:
     Returns the platform name, or "Unknown" if not recognized.
 
     Example:
-        detect_platform("https://youtube.com/watch?v=abc") → "YouTube"
+        detect_platform("https://instagram.com/p/abc") → "Instagram"
     """
     for pattern, name in PLATFORM_PATTERNS:
         if pattern.search(url):
@@ -60,7 +59,7 @@ def is_valid_url(url: str) -> bool:
             return False
         # Allowlist of supported domains — blocks SSRF to internal addresses
         ALLOWED_DOMAINS = re.compile(
-            r"(youtube\.com|youtu\.be|instagram\.com|tiktok\.com|"
+            r"(instagram\.com|tiktok\.com|"
             r"twitter\.com|x\.com|facebook\.com|fb\.watch|"
             r"vimeo\.com|reddit\.com|pinterest\.com)",
             re.I

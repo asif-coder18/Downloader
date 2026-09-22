@@ -37,12 +37,12 @@ async def analyze_endpoint(request: AnalyzeRequest):
     Analyze a social media URL and return media information.
 
     Request body:
-        { "url": "https://youtube.com/watch?v=..." }
+        { "url": "https://www.instagram.com/reel/..." }
 
     Response:
         {
             "title": "Video Title",
-            "platform": "YouTube",
+            "platform": "Instagram",
             "thumbnail": "https://...",
             "duration": "3:45",
             "uploader": "Channel Name",

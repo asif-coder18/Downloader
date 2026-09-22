@@ -89,7 +89,6 @@ export async function copyToClipboard(text) {
  */
 export function getPlatformGradient(platform) {
   const gradients = {
-    YouTube:   "from-red-500 to-red-700",
     Facebook:  "from-blue-500 to-blue-700",
     Instagram: "from-pink-500 via-purple-500 to-orange-400",
     TikTok:    "from-gray-800 to-gray-950",

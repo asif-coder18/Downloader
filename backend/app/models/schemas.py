@@ -41,7 +41,7 @@ class DownloadFormat(str, Enum):
 class AnalyzeRequest(BaseModel):
     """
     POST /analyze
-    Frontend sends: { "url": "https://youtube.com/watch?v=..." }
+    Frontend sends: { "url": "https://www.instagram.com/reel/..." }
     """
     url: str  # We validate this manually in the service
 
