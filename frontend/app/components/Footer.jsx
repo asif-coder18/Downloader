@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Download, GitBranch } from "lucide-react";
+import { Download } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -28,17 +28,6 @@ export default function Footer() {
             <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed max-w-xs mb-6">
               The fastest free social media downloader. No signup, no watermarks, no limits.
             </p>
-            <div className="flex items-center gap-2">
-              <a
-                href="https://github.com/asif-coder18/Downloader"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="GitHub"
-                className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.07] hover:bg-slate-200 dark:hover:bg-white/12 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200/80 dark:border-white/10 transition-all duration-200"
-              >
-                <GitBranch className="w-4 h-4" />
-              </a>
-            </div>
           </div>
 
           {/* Platforms */}
