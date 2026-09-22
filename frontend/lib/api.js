@@ -232,9 +232,44 @@ async function _blobDownload(response) {
  * @param {function} onProgress Called with 0→100 values during upload
  */
 export function uploadVideoToAudio(file, onProgress = () => {}) {
+  return _uploadFile("/api/upload/audio", file, onProgress);
+}
+
+/**
+ * Remove noise from a video/audio URL and download the clean MP3.
+ *
+ * Same two-step shape as the regular downloads, so the caller just
+ * triggers a browser download via /api/file/{token}.
+ *
+ * @param {string}   url        URL to the source video/audio
+ * @param {function} onProgress Called with 0→100 values (fake ticker)
+ */
+export async function denoiseFromUrl(url, onProgress) {
+  return _download("/api/noise/url", { url }, onProgress);
+}
+
+/**
+ * Upload a video/audio file, remove its background noise, and download
+ * the clean MP3.
+ *
+ * Uses XMLHttpRequest so we can report real upload progress.
+ * Returns the same { token, filename } shape as the URL flow.
+ *
+ * @param {File}     file       File selected by the user
+ * @param {function} onProgress Called with 0→100 values during upload
+ */
+export function denoiseUpload(file, onProgress = () => {}) {
+  return _uploadFile("/api/noise/upload", file, onProgress);
+}
+
+/**
+ * Shared XHR upload helper — posts a file to an endpoint and resolves
+ * with the { token, filename } JSON the backend returns.
+ */
+function _uploadFile(endpoint, file, onProgress = () => {}) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", `${API_BASE}/api/upload/audio`);
+    xhr.open("POST", `${API_BASE}${endpoint}`);
     xhr.timeout = 30 * 60 * 1000; // 30 min for large files up to 2GB
 
     // Upload progress — only covers upload (~0-60%); conversion is server-side
