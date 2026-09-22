@@ -111,13 +111,13 @@ export default function UploadForm({ onToast, isDownloading }) {
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
         onClick={() => { if (!busy) inputRef.current?.click(); }}
-        className={`relative rounded-2xl p-8 sm:p-10 text-center cursor-pointer transition-all duration-200
+        className={`relative rounded-2xl p-8 sm:p-10 text-center cursor-pointer transition-all duration-300
           border-2 border-dashed
           ${dragOver
-            ? "border-blue-500 bg-blue-500/10"
+            ? "border-pink-500 bg-pink-500/10 shadow-[0_0_30px_rgba(236,72,153,0.3)]"
             : busy
-              ? "border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/[0.04] opacity-70"
-              : "border-slate-300 dark:border-white/15 bg-white/70 dark:bg-white/[0.04] hover:border-blue-400/70"}
+              ? "border-white/10 bg-slate-900/40 opacity-70"
+              : "border-slate-300/30 dark:border-white/15 bg-slate-900/60 dark:bg-white/[0.04] backdrop-blur-xl hover:border-pink-400/50 hover:shadow-[0_0_20px_rgba(236,72,153,0.15)]"}
         `}
       >
         <input
@@ -130,21 +130,21 @@ export default function UploadForm({ onToast, isDownloading }) {
 
         {/* Icon */}
         <motion.div
-          animate={{ y: dragOver ? [-4, 4, -4] : 0 }}
+          animate={{ y: dragOver ? [-6, 6, -6] : 0 }}
           transition={{ duration: 1, repeat: dragOver ? Infinity : 0 }}
-          className={`w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4
+          className={`w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 transition-colors duration-300
             ${dragOver
-              ? "bg-blue-600 text-white"
-              : "bg-blue-100 dark:bg-blue-500/15 text-blue-600 dark:text-blue-300"}
+              ? "bg-gradient-to-tr from-purple-600 to-pink-600 text-white shadow-lg"
+              : "bg-gradient-to-tr from-purple-500/20 via-pink-500/20 to-orange-500/10 text-pink-400 border border-pink-500/30"}
           `}
         >
           <UploadCloud className="w-8 h-8" />
         </motion.div>
 
-        <p className="text-gray-800 dark:text-white font-semibold text-lg mb-1">
+        <p className="text-gray-900 dark:text-white font-bold text-lg mb-1">
           {dragOver ? "Drop it here!" : "Upload a video to extract audio"}
         </p>
-        <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">
+        <p className="text-slate-400 text-sm mb-4 font-medium">
           Tap to browse or drag &amp; drop — MP4, MKV, MOV, AVI, WebM…
         </p>
 
@@ -155,16 +155,16 @@ export default function UploadForm({ onToast, isDownloading }) {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-white/10 border border-slate-200 dark:border-white/10 max-w-full"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800/80 dark:bg-white/10 border border-white/15 shadow-md max-w-full"
             >
-              <FileVideo2 className="w-4 h-4 text-blue-500 flex-shrink-0" />
-              <span className="text-sm text-slate-600 dark:text-slate-300 font-medium truncate max-w-[220px]">
+              <FileVideo2 className="w-4 h-4 text-pink-400 flex-shrink-0" />
+              <span className="text-sm text-slate-200 font-medium truncate max-w-[220px]">
                 {file.name}
               </span>
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); if (!busy) { setFile(null); setError(""); setState(UPLOAD_STATE.IDLE); } }}
-                className="text-slate-400 hover:text-red-500 transition-colors flex-shrink-0"
+                className="text-slate-400 hover:text-red-400 transition-colors flex-shrink-0"
                 aria-label="Remove file"
               >
                 <X className="w-4 h-4" />
@@ -184,7 +184,7 @@ export default function UploadForm({ onToast, isDownloading }) {
             className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-3"
           >
             <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-            <p className="text-red-500 dark:text-red-400 text-sm font-medium">{error}</p>
+            <p className="text-red-400 text-sm font-medium">{error}</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -206,30 +206,30 @@ export default function UploadForm({ onToast, isDownloading }) {
         type="button"
         onClick={handleConvert}
         disabled={!file || busy}
-        whileHover={{ scale: !file || busy ? 1 : 1.015 }}
-        whileTap={{ scale: !file || busy ? 1 : 0.985 }}
-        className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl
-          bg-gradient-to-r from-blue-600 to-blue-500
-          hover:from-blue-500 hover:to-blue-400
+        whileHover={{ scale: !file || busy ? 1 : 1.025 }}
+        whileTap={{ scale: !file || busy ? 1 : 0.975 }}
+        className="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl
+          bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500
           disabled:opacity-50 disabled:cursor-not-allowed
-          text-white font-semibold text-sm
-          shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50
-          transition-all duration-200"
+          text-white font-bold text-base tracking-wide
+          shadow-xl cta-glow
+          transition-all duration-300 relative overflow-hidden group cursor-pointer"
       >
+        <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
         {state === UPLOAD_STATE.UPLOADING ? (
           <>
-            <Loader2 className="w-5 h-5 animate-spin" />
-            Converting to MP3…
+            <Loader2 className="w-5 h-5 animate-spin relative" />
+            <span className="relative">Converting to MP3…</span>
           </>
         ) : isDone ? (
           <>
-            <CheckCircle2 className="w-5 h-5" />
-            Done! 
+            <CheckCircle2 className="w-5 h-5 relative" />
+            <span className="relative">Done!</span>
           </>
         ) : (
           <>
-            <Music className="w-5 h-5" />
-            Extract Audio &amp; Download
+            <Music className="w-5 h-5 relative group-hover:scale-110 transition-transform" />
+            <span className="relative">Extract Audio &amp; Download</span>
           </>
         )}
       </motion.button>
