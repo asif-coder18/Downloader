@@ -185,18 +185,18 @@ export default function HomePage() {
           className="text-center mb-10"
         >
           {/* Pulsing Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-orange-500/10 border border-pink-500/30 text-pink-300 text-xs font-semibold mb-6 badge-glow">
-            <Zap className="w-3.5 h-3.5 text-pink-400 fill-pink-400/30" />
-            <span>Free • Fast • No Limits</span>
+          <div className="inline-flex items-center gap-2 px-4.5 py-1.5 rounded-full bg-white/80 dark:bg-slate-900/60 border border-pink-400/40 text-pink-600 dark:text-pink-300 text-xs font-semibold mb-6 badge-glow shadow-sm shadow-pink-500/10 backdrop-blur-md">
+            <Zap className="w-3.5 h-3.5 text-pink-500 fill-pink-500/30" />
+            <span>⚡ Free • Fast • No Limits</span>
           </div>
 
           {/* Animated Heading */}
-          <h1 className="text-4xl sm:text-6xl font-black text-gray-900 dark:text-white tracking-tight mb-4 leading-none">
+          <h1 className="text-5xl sm:text-7xl font-black text-slate-900 dark:text-white tracking-tight mb-4 leading-none">
             Download <br className="sm:hidden" />
             <span className="gradient-text">Anything, Instantly</span>
           </h1>
 
-          <p className="text-slate-400 text-base sm:text-lg max-w-xl mx-auto leading-relaxed">
+          <p className="text-slate-600 dark:text-slate-400 text-base sm:text-lg max-w-xl mx-auto leading-relaxed font-medium">
             Paste a link or upload a video to convert and download.
           </p>
         </motion.div>
@@ -208,18 +208,18 @@ export default function HomePage() {
           transition={{ delay: 0.15, duration: 0.5 }}
           className="flex justify-center mb-8"
         >
-          <div className="inline-flex items-center p-1.5 rounded-2xl bg-slate-950/70 dark:bg-white/[0.04] border border-white/10 gap-1.5 backdrop-blur-xl shadow-xl">
+          <div className="inline-flex items-center p-1.5 rounded-2xl bg-slate-100/80 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/10 gap-1.5 backdrop-blur-xl shadow-lg shadow-purple-500/5">
             <button
               type="button"
               onClick={() => setMode("link")}
               className={`relative flex items-center gap-2.5 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                mode === "link" ? "text-white" : "text-slate-400 hover:text-white"
+                mode === "link" ? "text-white" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               {mode === "link" && (
                 <motion.div
                   layoutId="activeTab"
-                  className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 rounded-xl shadow-lg shadow-purple-500/25"
+                  className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 rounded-xl shadow-md shadow-purple-500/20"
                   transition={{ type: "spring", stiffness: 450, damping: 30 }}
                 />
               )}
@@ -230,13 +230,13 @@ export default function HomePage() {
               type="button"
               onClick={() => setMode("upload")}
               className={`relative flex items-center gap-2.5 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                mode === "upload" ? "text-white" : "text-slate-400 hover:text-white"
+                mode === "upload" ? "text-white" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               {mode === "upload" && (
                 <motion.div
                   layoutId="activeTab"
-                  className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 rounded-xl shadow-lg shadow-purple-500/25"
+                  className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 rounded-xl shadow-md shadow-purple-500/20"
                   transition={{ type: "spring", stiffness: 450, damping: 30 }}
                 />
               )}
@@ -266,21 +266,40 @@ export default function HomePage() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.3 }}
-          className="mt-10 flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-xs font-semibold text-slate-400"
+          className="mt-10 flex flex-wrap items-center justify-center gap-6 sm:gap-12 text-xs font-semibold text-slate-600 dark:text-slate-400"
         >
-          <div className="flex items-center gap-2 group hover:text-purple-300 transition-colors">
-            <ShieldCheck className="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform" />
-            <span>100% Secure</span>
+          <div className="flex items-center gap-2.5 group">
+            <div className="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-500/15 flex items-center justify-center text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-bold text-slate-900 dark:text-white">100% Secure</span>
+              <span className="text-[11px] font-normal text-slate-500 dark:text-slate-400">Your data is safe</span>
+            </div>
           </div>
-          <span className="w-1.5 h-1.5 rounded-full bg-slate-800 hidden sm:inline-block" />
-          <div className="flex items-center gap-2 group hover:text-pink-300 transition-colors">
-            <Zap className="w-4 h-4 text-pink-400 group-hover:scale-110 transition-transform" />
-            <span>Super Fast</span>
+
+          <span className="w-px h-8 bg-slate-200 dark:bg-white/10 hidden sm:inline-block" />
+
+          <div className="flex items-center gap-2.5 group">
+            <div className="w-8 h-8 rounded-xl bg-pink-100 dark:bg-pink-500/15 flex items-center justify-center text-pink-600 dark:text-pink-400 group-hover:scale-110 transition-transform">
+              <Zap className="w-4 h-4" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-bold text-slate-900 dark:text-white">Super Fast</span>
+              <span className="text-[11px] font-normal text-slate-500 dark:text-slate-400">Lightning speed</span>
+            </div>
           </div>
-          <span className="w-1.5 h-1.5 rounded-full bg-slate-800 hidden sm:inline-block" />
-          <div className="flex items-center gap-2 group hover:text-orange-300 transition-colors">
-            <InfinityIcon className="w-4 h-4 text-orange-400 group-hover:scale-110 transition-transform" />
-            <span>No Registration</span>
+
+          <span className="w-px h-8 bg-slate-200 dark:bg-white/10 hidden sm:inline-block" />
+
+          <div className="flex items-center gap-2.5 group">
+            <div className="w-8 h-8 rounded-xl bg-orange-100 dark:bg-orange-500/15 flex items-center justify-center text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform">
+              <InfinityIcon className="w-4 h-4" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-bold text-slate-900 dark:text-white">No Registration</span>
+              <span className="text-[11px] font-normal text-slate-500 dark:text-slate-400">Just paste &amp; download</span>
+            </div>
           </div>
         </motion.div>
 

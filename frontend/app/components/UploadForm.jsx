@@ -114,10 +114,10 @@ export default function UploadForm({ onToast, isDownloading }) {
         className={`relative rounded-2xl p-8 sm:p-10 text-center cursor-pointer transition-all duration-300
           border-2 border-dashed
           ${dragOver
-            ? "border-pink-500 bg-pink-500/10 shadow-[0_0_30px_rgba(236,72,153,0.3)]"
+            ? "border-pink-500 bg-pink-500/10 shadow-[0_0_30px_rgba(236,72,153,0.2)]"
             : busy
-              ? "border-white/10 bg-slate-900/40 opacity-70"
-              : "border-slate-300/30 dark:border-white/15 bg-slate-900/60 dark:bg-white/[0.04] backdrop-blur-xl hover:border-pink-400/50 hover:shadow-[0_0_20px_rgba(236,72,153,0.15)]"}
+              ? "border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-900/40 opacity-70"
+              : "border-slate-300 dark:border-white/15 bg-white dark:bg-slate-900/60 backdrop-blur-xl hover:border-purple-400 hover:shadow-[0_10px_30px_-10px_rgba(124,58,237,0.15)]"}
         `}
       >
         <input
@@ -135,16 +135,16 @@ export default function UploadForm({ onToast, isDownloading }) {
           className={`w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 transition-colors duration-300
             ${dragOver
               ? "bg-gradient-to-tr from-purple-600 to-pink-600 text-white shadow-lg"
-              : "bg-gradient-to-tr from-purple-500/20 via-pink-500/20 to-orange-500/10 text-pink-400 border border-pink-500/30"}
+              : "bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30"}
           `}
         >
           <UploadCloud className="w-8 h-8" />
         </motion.div>
 
-        <p className="text-gray-900 dark:text-white font-bold text-lg mb-1">
+        <p className="text-slate-900 dark:text-white font-bold text-lg mb-1">
           {dragOver ? "Drop it here!" : "Upload a video to extract audio"}
         </p>
-        <p className="text-slate-400 text-sm mb-4 font-medium">
+        <p className="text-slate-500 dark:text-slate-400 text-sm mb-4 font-medium">
           Tap to browse or drag &amp; drop — MP4, MKV, MOV, AVI, WebM…
         </p>
 
@@ -155,16 +155,16 @@ export default function UploadForm({ onToast, isDownloading }) {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800/80 dark:bg-white/10 border border-white/15 shadow-md max-w-full"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 dark:bg-white/10 border border-slate-200/80 dark:border-white/15 shadow-sm max-w-full"
             >
-              <FileVideo2 className="w-4 h-4 text-pink-400 flex-shrink-0" />
-              <span className="text-sm text-slate-200 font-medium truncate max-w-[220px]">
+              <FileVideo2 className="w-4 h-4 text-purple-600 dark:text-pink-400 flex-shrink-0" />
+              <span className="text-sm text-slate-700 dark:text-slate-200 font-semibold truncate max-w-[220px]">
                 {file.name}
               </span>
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); if (!busy) { setFile(null); setError(""); setState(UPLOAD_STATE.IDLE); } }}
-                className="text-slate-400 hover:text-red-400 transition-colors flex-shrink-0"
+                className="text-slate-400 hover:text-red-500 transition-colors flex-shrink-0"
                 aria-label="Remove file"
               >
                 <X className="w-4 h-4" />

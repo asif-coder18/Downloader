@@ -97,10 +97,10 @@ export default function MediaPreviewCard({
       initial={{ opacity: 0, y: 28, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.45, ease: "easeOut" }}
-      className="w-full rounded-2xl overflow-hidden
-        bg-white/70 dark:bg-white/[0.05] backdrop-blur-md
-        border border-slate-200/80 dark:border-white/[0.09]
-        shadow-xl shadow-slate-200/50 dark:shadow-black/30"
+      className="w-full rounded-3xl overflow-hidden
+        bg-white dark:bg-slate-900/80 backdrop-blur-xl
+        border border-slate-200/90 dark:border-white/[0.09]
+        shadow-2xl shadow-purple-500/10"
     >
       {/* Thumbnail */}
       <div className="relative w-full aspect-video bg-slate-900">
